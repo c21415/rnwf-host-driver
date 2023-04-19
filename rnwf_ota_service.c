@@ -40,7 +40,7 @@ RNWF_RESULT_t RNWF_OTA_Process(uint32_t socket, uint16_t rx_len) {
     uint8_t prov_buf[OTA_BUF_LEN_MAX];
     
     
-    if(RNWF_NET_SOCK_Read(socket, OTA_BUF_LEN_MAX, (uint8_t *)prov_buf, RNWF_BINARY_MODE) == RNWF_PASS)
+    if(RNWF_NET_TCP_SOCK_Read(socket, OTA_BUF_LEN_MAX, (uint8_t *)prov_buf) == RNWF_PASS)
     {
         
         
