@@ -76,7 +76,7 @@ extern uint32_t   g_interface_timeout;
 // TODO Insert C++ class definitions if appropriate
 
 // TODO Insert declarations
-#define RNWF_INTERFACE_TIMEOUT      0x7FFF
+#define RNWF_INTERFACE_TIMEOUT      0x1FFFF
 
 #define RNWF_INTERFACE_DEBUG        1
 
@@ -133,7 +133,7 @@ extern uint32_t   g_interface_timeout;
 #define RNWF_EVENT_MQTT_SUB_RESP    "MQTTSUB:"
 #define RNWF_EVENT_MQTT_UNSUB_RESP  "MQTTUNSUB:"
 #define RNWF_EVENT_MQTT_PROP_RX     "MQTTPROPRX:"
-
+#define RNWF_EVENT_MQTT_SUB_MSG     "MQTTSUBRX:"
 
 
 

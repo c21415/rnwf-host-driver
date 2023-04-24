@@ -122,6 +122,7 @@ typedef enum
 {
     RNWF_MQTT_CONNECTED,    /**<Connected to MQTT broker event */
     RNWF_MQTT_DISCONNECTED, /**<Disconnected from MQTT broker event*/   
+    RNWF_MQTT_SUBCRIBE_MSG,  /**<Event to report received MQTT message*/   
 }RNWF_MQTT_EVENT_t;
 
 /**
