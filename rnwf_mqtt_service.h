@@ -135,6 +135,8 @@ typedef struct
     uint16_t port;              /**<MQTT Broker/Server Port */
     const char *username;       /**<MQTT User Name Credential */
     const char *password;       /**<MQTT Password Credential */ 
+    uint8_t     tls_idx;
+    uint8_t     *tls_conf;
 }RNWF_MQTT_CFG_t;
 
 /**

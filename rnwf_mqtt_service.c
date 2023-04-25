@@ -12,6 +12,7 @@
 
 #include "rnwf_interface.h"
 #include "rnwf_mqtt_service.h"
+#include "rnwf_net_service.h"
 #include "rnwf_system_service.h"
 
 
@@ -38,7 +39,12 @@ RNWF_RESULT_t result = RNWF_FAIL;
     {
         case RNWF_MQTT_CONFIG:
         {
-            RNWF_MQTT_CFG_t *mqtt_cfg = (RNWF_MQTT_CFG_t *)input;             
+            RNWF_MQTT_CFG_t *mqtt_cfg = (RNWF_MQTT_CFG_t *)input;  
+            if(mqtt_cfg->tls_idx != 0)
+            {
+                result = RNWF_NET_SOCK_SrvCtrl(mqtt_cfg->tls_idx, mqtt_cfg->tls_conf);                                     
+                result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_MQTT_SET_TLS_CONF, mqtt_cfg->tls_idx);                             
+            }
             result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_MQTT_SET_BROKER_URL, mqtt_cfg->url);                 
             result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_MQTT_SET_BROKER_PORT, mqtt_cfg->port);     
             break;
