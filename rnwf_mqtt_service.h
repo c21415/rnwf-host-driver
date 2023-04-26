@@ -122,6 +122,7 @@ typedef enum
 {
     RNWF_MQTT_CONNECTED,    /**<Connected to MQTT broker event */
     RNWF_MQTT_DISCONNECTED, /**<Disconnected from MQTT broker event*/   
+    RNWF_MQTT_SUBCRIBE_MSG,  /**<Event to report received MQTT message*/   
 }RNWF_MQTT_EVENT_t;
 
 /**
@@ -134,6 +135,8 @@ typedef struct
     uint16_t port;              /**<MQTT Broker/Server Port */
     const char *username;       /**<MQTT User Name Credential */
     const char *password;       /**<MQTT Password Credential */ 
+    uint8_t     tls_idx;
+    uint8_t     *tls_conf;
 }RNWF_MQTT_CFG_t;
 
 /**

@@ -350,7 +350,11 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
                     gMqtt_CallBack_Handler(RNWF_MQTT_CONNECTED, p_arg);
                 else
                     gMqtt_CallBack_Handler(RNWF_MQTT_DISCONNECTED, p_arg);                
-            }                        
+            }                   
+            if(strstr((char *)p_msg, RNWF_EVENT_MQTT_SUB_MSG))
+            {
+                gMqtt_CallBack_Handler(RNWF_MQTT_SUBCRIBE_MSG, p_arg);
+            }
         }
         break;
         default:
@@ -580,6 +584,8 @@ RNWF_RESULT_t RNWF_IF_Init(void)
     {                
         IF_BUF_Q_ENQUEUE(pMem_addr);        
     }
+    
+    
     
     RNWF_IF_SW_Reset();
     
