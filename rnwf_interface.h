@@ -46,6 +46,7 @@ typedef enum
 {   
     RNWF_FAIL =  0,     /**<Failure*/
     RNWF_PASS =  1,     /**<Success*/
+    RNWF_RAW = 2,       /**<RAW mode*/
     RNWF_COTN =  2,     /**<Retry*/                 
     RNWF_BUSY = -1,     /**<Busy*/       
     RNWF_TIMEOUT = -2,  /**<Timeout*/                 
@@ -64,7 +65,7 @@ extern const uart_drv_interface_t UART2;
 #define RNWF_INTERFACE_LEN_MAX    512
 
 #define RNWF_IF_ASYCN_BUF_MAX  512
-#define RNWF_IF_ASYCN_MSG_MAX  128
+#define RNWF_IF_ASYCN_MSG_MAX  64
 
 #define RNWF_IF_BUF_MAX     (RNWF_IF_ASYCN_BUF_MAX/RNWF_IF_ASYCN_MSG_MAX)
 

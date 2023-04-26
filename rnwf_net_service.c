@@ -157,9 +157,10 @@ RNWF_RESULT_t RNWF_NET_TCP_SOCK_Write( uint32_t socket, uint16_t length, uint8_t
     
     RNWF_RESULT_t result = RNWF_FAIL;
                 
-    if((result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_BINARY_WRITE_TCP, socket, length)) == RNWF_PASS)     
-    {                                                            
-        RNWF_RAW_Write(input, length);                                                            
+    if((result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_BINARY_WRITE_TCP, socket, length)) == RNWF_RAW)     
+    {                              
+        RNWF_RAW_Write(input, length); 
+        result = RNWF_PASS;
     }    
     return result;
 }
@@ -168,9 +169,10 @@ RNWF_RESULT_t RNWF_NET_UDP_SOCK_Write( uint32_t socket, uint8_t *addr, uint32_t 
     
     RNWF_RESULT_t result = RNWF_FAIL;
                          
-    if((result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_ASCII_WRITE_UDP, socket, addr, port, length, input)) == RNWF_PASS)     
+    if((result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_ASCII_WRITE_UDP, socket, addr, port, length, input)) == RNWF_RAW)     
     {                                                            
-        RNWF_RAW_Write(input, length);                                                            
+        RNWF_RAW_Write(input, length); 
+        result = RNWF_PASS;
     }
     
     return result;
@@ -180,17 +182,12 @@ RNWF_RESULT_t RNWF_NET_UDP_SOCK_Write( uint32_t socket, uint8_t *addr, uint32_t 
 
 RNWF_RESULT_t RNWF_NET_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  {                
     RNWF_RESULT_t result = RNWF_FAIL;
-     
-    buffer[0] = '\0';
-    while(length > strlen((char *)buffer))
-    {                                
-        if((result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_READ, socket, RNWF_BINARY_MODE, length-strlen((char *)buffer))) == RNWF_PASS)
-        {                                    
-            RNWF_CMD_SEND_OK_WAIT(NULL, buffer, NULL); 
-        }
-
-    }              
-    
+                                        
+    if((result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_READ, socket, RNWF_BINARY_MODE, length)) == RNWF_RAW)
+    {                                    
+        RNWF_CMD_SEND_OK_WAIT(NULL, buffer, NULL);
+        result = RNWF_PASS;
+    }
     return result;
 }
 

@@ -305,9 +305,9 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
                 RNWF_NET_SOCK_CALLBACK_t netSock_cb_func = gSocket_CallBack_Handler[i];
                 
                 if(netSock_cb_func == NULL)
-                    continue;                                
-                                            
-                sscanf((char *)p_arg, "%lu %*s", &socket_id); 
+                    continue;
+                
+                sscanf((char *)p_arg, "%lu %*s", &socket_id);
                                                             
                 if(strstr((char *)p_msg, RNWF_EVENT_SOCK_TLS_DONE))
                 {          
@@ -406,7 +406,7 @@ RNWF_RESULT_t RNWF_EVENT_Handler(void)
     
     while(IF_RX_Q_DEQUEUE(&ptr_async))
     {   
-        DBG_MSG_IF("Dequeued Msg = %s\r\n", ptr_async);
+        //DBG_MSG_IF("Dequeued Msg = %s\r\n", ptr_async);
         char *token = strtok((char *)ptr_async, "\r+");        
         while(token != NULL)
         {
@@ -485,7 +485,7 @@ RNWF_RESULT_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter,
             
             if(strstr((char *)g_if_buffer, "\r\n#")) //Raw mode socket 
             {
-                result = RNWF_PASS;
+                result = RNWF_RAW;
                 g_if_buffer[rsp_len-3] = '\0';
                 g_if_buffer[rsp_len-2] = '\0';  
                 g_if_buffer[rsp_len-1] = '\0';

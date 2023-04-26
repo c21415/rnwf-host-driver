@@ -25,7 +25,9 @@
 /* ************************************************************************** */
 RNWF_OTA_CALLBACK_t gOta_CallBack_Handler;
 
-uint8_t gOta_Http_Req[] = "GET /ota_config.xml HTTP/1.1\r\n Connection: close\r\n\r\n";
+uint8_t prov_buf[OTA_BUF_LEN_MAX];
+
+uint8_t gOta_Http_Req[] = "GET /test_fw.bin HTTP/1.1\r\n Connection: Keep-Alive\r\n\r\n";
 
 
 RNWF_OTA_CFG_t gOta_CfgData;
@@ -41,15 +43,30 @@ RNWF_RESULT_t RNWF_OTA_Process(uint32_t socket, uint16_t rx_len) {
     
     
     if(RNWF_NET_TCP_SOCK_Read(socket, OTA_BUF_LEN_MAX, (uint8_t *)prov_buf) == RNWF_PASS)
+    DBG_MSG_OTA("Chunk Size = %d\t", rx_len);
+    while(rx_len > 0)
     {
-        
-        
-    }        
+
+        uint16_t readCnt = (rx_len > OTA_BUF_LEN_MAX)?(OTA_BUF_LEN_MAX):rx_len;
+        memset(prov_buf, 0, OTA_BUF_LEN_MAX);
+        if(RNWF_NET_TCP_SOCK_Read(socket, readCnt, (uint8_t *)prov_buf) == RNWF_PASS)
+        {            
+            rx_len -= readCnt;
+
+        }
+        else
+        {
+            DBG_MSG_OTA("Download Failure\r\n");
+            return RNWF_FAIL;
+        }          
+    }      
+    printf("Received!\r\n");
+    
     return RNWF_PASS;
 }
 
 void RNWF_OTA_SOCKET_Callback(uint32_t sock, RNWF_NET_SOCK_EVENT_t event, uint8_t *p_str)
-{        
+{               
     switch(event)
     {
         case RNWF_NET_SOCK_EVENT_CONNECTED:  

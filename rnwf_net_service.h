@@ -73,6 +73,7 @@ This page introduces the user to the topic.
 #define RNWF_SOCK_ASCII_WRITE_TCP       "AT+SOCKWR=%d,%d,\"%.*s\"\r\n"
 #define RNWF_SOCK_ASCII_WRITE_UDP       "AT+SOCKWRTO=%d,%s,%d,%d,\"%.*s\"\r\n"
 
+#define RNWF_SOCK_READ_BUF              "AT+SOCKRDBUF=%lu,%d,%d\r\n"
 #define RNWF_SOCK_READ                  "AT+SOCKRD=%lu,%d,%d\r\n"
 #define RNWF_SOCK_READ_RESP             "+SOCKRD:"
 
@@ -200,7 +201,7 @@ typedef struct {
  @brief Network socket events callback function type 
  
  */
-typedef void (*RNWF_NET_SOCK_CALLBACK_t)(RNWF_NET_SOCK_EVENT_t, uint32_t sock, uint8_t *);
+typedef void (*RNWF_NET_SOCK_CALLBACK_t)(uint32_t sock, RNWF_NET_SOCK_EVENT_t, uint8_t *);
 
 
 /**
