@@ -15,6 +15,8 @@
 #include "rnwf_ota_service.h"
 #include "rnwf_system_service.h"
 
+#include "../../timer/delay.h"
+
 
 
 
@@ -37,30 +39,33 @@ RNWF_OTA_CFG_t gOta_CfgData;
 /* ************************************************************************** */
 /* ************************************************************************** */
 
+uint8_t prov_buf[OTA_BUF_LEN_MAX];
+uint32_t total_rx = 0;
+
 RNWF_RESULT_t RNWF_OTA_Process(uint32_t socket, uint16_t rx_len) {
-            
-    uint8_t prov_buf[OTA_BUF_LEN_MAX];
-    
-    
-    if(RNWF_NET_TCP_SOCK_Read(socket, OTA_BUF_LEN_MAX, (uint8_t *)prov_buf) == RNWF_PASS)
-    DBG_MSG_OTA("Chunk Size = %d\t", rx_len);
+                        
+    //DBG_MSG_OTA("Chunk Size = %d\n", rx_len);
     while(rx_len > 0)
     {
-
+        volatile int32_t result = 0;
         uint16_t readCnt = (rx_len > OTA_BUF_LEN_MAX)?(OTA_BUF_LEN_MAX):rx_len;
         memset(prov_buf, 0, OTA_BUF_LEN_MAX);
-        if(RNWF_NET_TCP_SOCK_Read(socket, readCnt, (uint8_t *)prov_buf) == RNWF_PASS)
-        {            
-            rx_len -= readCnt;
+        if((result = RNWF_NET_TCP_SOCK_Read(socket, readCnt, (uint8_t *)prov_buf)) > 0 )
+        {                        
+            total_rx = total_rx + (uint32_t)result;            
+            rx_len -= result;
 
         }
         else
         {
             DBG_MSG_OTA("Download Failure\r\n");
             return RNWF_FAIL;
-        }          
-    }      
-    printf("Received!\r\n");
+            
+        } 
+//        DELAY_milliseconds(10);
+    }    
+    
+    printf("Received! %lu\r\n", (uint32_t)total_rx);
     
     return RNWF_PASS;
 }

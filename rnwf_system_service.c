@@ -36,8 +36,13 @@ RNWF_RESULT_t RNWF_SYSTEM_SrvCtrl(RNWF_SYSTEM_SERVICE_t request, uint8_t *input)
         {
             uint8_t init_msg[128];
             RNWF_CMD_SEND_OK_WAIT(NULL, init_msg, RNWF_RESET_TARGET);
-        }   
+        }
             break;
+        case RNWF_SYSTEM_ECHO_OFF:
+        {
+            RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SET_ECHO_OFF);
+        }
+        break;
         case RNWF_SYSTEM_GET_MAN_ID:
             RNWF_CMD_SEND_OK_WAIT("+GMI:", input, RNWF_GET_MAN_ID);            
             break;

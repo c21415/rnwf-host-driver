@@ -159,8 +159,7 @@ RNWF_RESULT_t RNWF_NET_TCP_SOCK_Write( uint32_t socket, uint16_t length, uint8_t
                 
     if((result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_BINARY_WRITE_TCP, socket, length)) == RNWF_RAW)     
     {                              
-        RNWF_RAW_Write(input, length); 
-        result = RNWF_PASS;
+        result = RNWF_RAW_Write(input, length);         
     }    
     return result;
 }
@@ -171,8 +170,7 @@ RNWF_RESULT_t RNWF_NET_UDP_SOCK_Write( uint32_t socket, uint8_t *addr, uint32_t 
                          
     if((result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_ASCII_WRITE_UDP, socket, addr, port, length, input)) == RNWF_RAW)     
     {                                                            
-        RNWF_RAW_Write(input, length); 
-        result = RNWF_PASS;
+        result = RNWF_RAW_Write(input, length);         
     }
     
     return result;
@@ -180,24 +178,24 @@ RNWF_RESULT_t RNWF_NET_UDP_SOCK_Write( uint32_t socket, uint8_t *addr, uint32_t 
 
    
 
-RNWF_RESULT_t RNWF_NET_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  {                
-    RNWF_RESULT_t result = RNWF_FAIL;
+int16_t RNWF_NET_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  {                
+    int16_t result = RNWF_FAIL;
                                         
-    if((result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_READ, socket, RNWF_BINARY_MODE, length)) == RNWF_RAW)
-    {                                    
-        RNWF_CMD_SEND_OK_WAIT(NULL, buffer, NULL);
-        result = RNWF_PASS;
+    if(RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_READ, socket, RNWF_BINARY_MODE, length) == RNWF_RAW)
+    {                                            
+        //result = RNWF_CMD_SEND_OK_WAIT(NULL, buffer, NULL); 
+        result = RNWF_RAW_Read(buffer, length);
     }
     return result;
 }
 
 
-RNWF_RESULT_t RNWF_NET_TCP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  {                                   
+int16_t RNWF_NET_TCP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  {                                   
     return RNWF_NET_SOCK_Read(socket, length, buffer);
 }
 
 
-RNWF_RESULT_t RNWF_NET_UDP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  {                   
+int16_t RNWF_NET_UDP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  {                   
     return RNWF_NET_SOCK_Read(socket, length, buffer);
 }
 /* *****************************************************************************

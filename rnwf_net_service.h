@@ -264,7 +264,7 @@ RNWF_RESULT_t RNWF_NET_UDP_SOCK_Write( uint32_t socket, uint8_t *addr, uint32_t 
  * @return ::RNWF_PASS Requested service is handled successfully
  * @return ::RNWF_FAIL Requested service has failed
  */
-RNWF_RESULT_t RNWF_NET_TCP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *input);
+int16_t RNWF_NET_TCP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *input);
 
 
 /**
@@ -278,7 +278,7 @@ RNWF_RESULT_t RNWF_NET_TCP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t 
  * @return ::RNWF_PASS Requested service is handled successfully
  * @return ::RNWF_FAIL Requested service has failed
  */
-RNWF_RESULT_t RNWF_NET_UDP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *input);
+int16_t RNWF_NET_UDP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *input);
 
 #endif	/* RNWF_NET_SERVICE_H */
 

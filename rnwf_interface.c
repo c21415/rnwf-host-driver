@@ -30,6 +30,7 @@ easy and quick applciation development
 #include "rnwf_wifi_service.h"
 #include "rnwf_net_service.h"
 #include "rnwf_mqtt_service.h"
+#include "rnwf_system_service.h"
 /* This section lists the other files that are included in this file.
  */
 
@@ -142,13 +143,17 @@ bool if_q_enqueue(IF_QUEUE_t *if_q, uint8_t *mem_idx)
 {
     
     if(if_q_full(if_q))
-    {        
+    {
         return false;
     }
-        
-    if_q->tail = ((if_q->tail + 1) % RNWF_IF_BUF_MAX);                   
+    if(if_q_empty(if_q))
+    {
+        if_q->tail = -1;
+        if_q->head = 0;
+    }
+    if_q->tail = ((if_q->tail + 1) % RNWF_IF_BUF_MAX);
     if_q->queue[if_q->tail] = mem_idx;
-    if_q->size++;    
+    if_q->size++;
     
     return true;
 }
@@ -160,16 +165,16 @@ bool if_q_enqueue(IF_QUEUE_t *if_q, uint8_t *mem_idx)
  * @return true/false
  */
 bool if_q_dequeue(IF_QUEUE_t *if_q, uint8_t **mem_idx)
-{        
+{
     if(if_q_empty(if_q))
     {
         return false;
-    }       
-    
-    *mem_idx = if_q->queue[if_q->head]; 
-    if_q->head = ((if_q->head + 1) % RNWF_IF_BUF_MAX);  
+    }
+
+    *mem_idx = if_q->queue[if_q->head];
+    if_q->head = ((if_q->head + 1) % RNWF_IF_BUF_MAX);
     if_q->size--;
-                                                           
+
     return true;    
 }
 
@@ -247,8 +252,8 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
     RNWF_RESPONSE_Trim(p_arg);
     
 #ifdef RNWF_INTERFACE_DEBUG    
-    DBG_MSG_IF("Async Message -> %s\n", p_msg);
-    DBG_MSG_IF("Async Arguments-> %s\n", p_arg);
+//    DBG_MSG_IF("Async Message -> %s\n", p_msg);
+      DBG_MSG_IF("Async Arguments-> %s\n", p_arg);
 #endif
     
     switch(p_msg[0])                        
@@ -386,6 +391,41 @@ RNWF_RESULT_t RNWF_RESPONSE_Trim(uint8_t *buffer)
 }
 
 
+int16_t RNWF_RAW_Read(uint8_t *buffer, uint16_t len)
+{
+    uint16_t readCnt = 0;
+    uint8_t tempBuf[16], *bufPtr = buffer;
+    int16_t result = RNWF_TIMEOUT;
+
+    g_interface_timeout = RNWF_INTERFACE_TIMEOUT;
+    while(g_interface_timeout--) //later make it timeout
+    {
+        if(UART2.IsRxReady())
+        {   
+            bufPtr[readCnt++] = UART2.Read();
+            if(readCnt == len) // Complete response is copied
+            {
+                result = readCnt;
+                bufPtr = tempBuf;
+                readCnt = 0;
+            }
+        }
+        
+        if((readCnt > 3) && (result == len))
+        {
+            if((tempBuf[readCnt - 1] == '\n') && (tempBuf[readCnt - 2] == '\r') &&
+                    (tempBuf[readCnt - 3] == 'K') && (tempBuf[readCnt - 4] == 'O'))
+            {
+                return result;
+            }
+            readCnt = 0;
+        }
+    }
+#ifdef RNWF_INTERFACE_DEBUG
+    printf("Timeout!");
+#endif /* RNWF_INTERFACE_DEBUG*/   
+    return RNWF_TIMEOUT;
+}
 
 RNWF_RESULT_t RNWF_RAW_Write(uint8_t *buffer, uint16_t len)
 {        
@@ -397,32 +437,33 @@ RNWF_RESULT_t RNWF_RAW_Write(uint8_t *buffer, uint16_t len)
             while(!UART2.IsTxDone());            
             len--;
         }
-        if((len % 450) == 0)
-                DELAY_milliseconds(100);
     }    
     return RNWF_PASS;
 }
 
 
+uint8_t async_buf[RNWF_IF_ASYCN_MSG_MAX];
+
 RNWF_RESULT_t RNWF_EVENT_Handler(void)
 {   
-    uint8_t *ptr_async;         
-    
-    while(IF_RX_Q_DEQUEUE(&ptr_async))
-    {   
-        //DBG_MSG_IF("Dequeued Msg = %s\r\n", ptr_async);
-        char *token = strtok((char *)ptr_async, "\r+");        
+    uint8_t *ptr_async;            
+    while(IF_RX_Q_DEQUEUE(&ptr_async) != false)
+    {                   
+        strcpy(async_buf, ptr_async);        
+        IF_BUF_Q_ENQUEUE(ptr_async);        
+        
+        char *token = strtok((char *)async_buf, "\r+");        
         while(token != NULL)
-        {
-            DBG_MSG_IF("Async token %s\n", token);
-            RNWF_IF_ASYNC_Handler((uint8_t *)token);            
+        {            
+            if(strlen(token) > 1)
+            {
+                //DBG_MSG_IF("[Async token %s:%d]\n", token, strlen(token));
+                RNWF_IF_ASYNC_Handler((uint8_t *)token);            
+            }
             token = strtok(NULL, "\r+");            
         }
-        //RNWF_IF_ASYNC_Handler(ptr_async);
-        memset(ptr_async, 0, RNWF_IF_ASYCN_MSG_MAX);
-        IF_BUF_Q_ENQUEUE(ptr_async);  
     }
-    RNWF_CMD_RSP_Send(NULL, NULL, NULL, NULL); 
+    RNWF_CMD_RSP_Send(NULL, NULL, NULL, NULL);
     return RNWF_PASS;
 }
 /** 
@@ -435,11 +476,12 @@ RNWF_RESULT_t RNWF_EVENT_Handler(void)
   @Remarks
     Refer to the example_file.h interface header for function usage details.
  */
-RNWF_RESULT_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8_t *response, const char *format, ...)
+int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8_t *response, const char *format, ...)
 {
     uint8_t *p_frame = g_if_buffer;
-    RNWF_RESULT_t result = RNWF_PASS;
-    size_t cmd_len, rsp_len = 0;
+    uint16_t result = RNWF_PASS;
+    size_t cmd_len;
+    volatile int16_t rsp_len = 0;        
     uint16_t offset =  0;
     va_list args;   
     //memset(g_interface_send_buffer, 0, RNWF_INTERFACE_LEN_MAX);
@@ -453,7 +495,7 @@ RNWF_RESULT_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter,
         cmd_len = vsnprintf((char *)g_if_buffer, RNWF_INTERFACE_LEN_MAX, format, args);        
         va_end(args); 
 #ifdef RNWF_INTERFACE_DEBUG        
-        DBG_MSG_IF("\nDBG:cmd[%d] -> %s", cmd_len, p_frame);
+        DBG_MSG_IF("cmd[%d] -> %s\n", cmd_len, p_frame);
 #endif /* RNWF_INTERFACE_DEBUG */        
 
         while(*p_frame != '\0')
@@ -468,8 +510,8 @@ RNWF_RESULT_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter,
         if(response != NULL)
             response[0] = '\0';
         
-    }
-    
+    }    
+    DELAY_milliseconds(50);
     g_interface_timeout = RNWF_INTERFACE_TIMEOUT;
     while(g_interface_timeout--) //later make it timeout
     {        
@@ -477,7 +519,7 @@ RNWF_RESULT_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter,
         {      
             if(rsp_len < RNWF_INTERFACE_LEN_MAX)
             {
-                g_if_buffer[rsp_len++] = UART2.Read();                  
+                g_if_buffer[rsp_len++] = UART2.Read();                                  
             }
             else
             {
@@ -486,90 +528,102 @@ RNWF_RESULT_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter,
                 g_if_buffer[rsp_len-2] = g_if_buffer[rsp_len-1];
                 rsp_len = rsp_len-1;    //
             }
-            
-            if(strstr((char *)g_if_buffer, "\r\n#")) //Raw mode socket 
+            //RAW mode
+            if(g_if_buffer[rsp_len-1] == '#')
             {
-                result = RNWF_RAW;
-                g_if_buffer[rsp_len-3] = '\0';
-                g_if_buffer[rsp_len-2] = '\0';  
-                g_if_buffer[rsp_len-1] = '\0';
-                break;
-            }
-            if(strstr((char *)g_if_buffer, "\r\n>"))
-            {           
+                g_if_buffer[rsp_len-1] == '\0';
 #ifdef RNWF_INTERFACE_DEBUG       
-                DBG_MSG_IF("DBG:rsp[%d] <- %.*s\n", rsp_len, rsp_len, g_if_buffer);
-#endif /* RNWF_INTERFACE_DEBUG */                     
-                g_if_buffer[rsp_len-3] = '\0';
-                g_if_buffer[rsp_len-2] = '\0';  
-                g_if_buffer[rsp_len-1] = '\0';                  
+                printf("RAW Mode!\n");
+#endif /* RNWF_INTERFACE_DEBUG */                                     
+                result = RNWF_RAW;
+                break;
+            }  
+            
+            if((rsp_len > 1) && (g_if_buffer[rsp_len - 1] == '\n') && (g_if_buffer[rsp_len - 2] == '\r'))
+            {                
+                if((rsp_len > 3) && ((g_if_buffer[rsp_len - 3] == 'K') && (g_if_buffer[rsp_len - 4] == 'O')))
+                {                    
+                    g_if_buffer[rsp_len] = '\0';
+#ifdef RNWF_INTERFACE_DEBUG        
+        DBG_MSG_IF("rsp[%d] -> %.*s\n", rsp_len, rsp_len, g_if_buffer);                
+#endif /* RNWF_INTERFACE_DEBUG */        
+                    
+                    if(response != NULL)
+                    {
+                        if(delimeter != NULL)
+                        {                                        
+                            volatile uint8_t *token, *rsp_ptr;
+
+                            rsp_ptr = (uint8_t *)strstr((char *)g_if_buffer, delimeter);                            
+                            offset =  strlen(delimeter);
+                            token = (uint8_t *)strtok((char *)rsp_ptr, "\r\n");
+
+                            /* walk through other tokens */
+                            while( token != NULL ) {                           
+                                if(strstr((char *)token, delimeter))
+                                    strcat((char *)response, (char *)token+offset); 
+                                    if(strstr((char *)token, "OK\r\n"))
+                                    {
+                                        break;
+                                    }
+                                token = (uint8_t *)strtok(NULL, "\r\n");
+                            }
+                        }   
+                        else
+                        {                                      
+                            g_if_buffer[rsp_len-5] = '\0';
+                            memcpy((char *)response, (char *)g_if_buffer, rsp_len-5);                            
+                            result = rsp_len-5;                            
+                        }
+                    }                                         
+                    break;                                        
+                }
+                else
+                {       
+                    if(strstr(g_if_buffer, RNWF_AT_ERROR))
+                    {                       
+                        if(response != NULL)
+                        {                    
+                            strcpy((char *)response, (char *)g_if_buffer+sizeof(RNWF_AT_ERROR));
+                        }
+                        result = RNWF_FAIL;                    
+                        break;                        
+                    } 
+                    
+                }
+                
                 if((g_if_buffer[0] == '\r') && (g_if_buffer[1] == '+'))
-                {    
-                    uint8_t *async_buf;
-                    //RNWF_SET_INTERFACE_FREE();
-                    //result = RNWF_IF_ASYNC_Handler(g_if_buffer);
-                    //RNWF_SET_INTERFACE_BUSY();  
+                {                    
+                    uint8_t *async_buf;                    
+                    g_if_buffer[rsp_len] = '\0';
                     if(IF_BUF_Q_DEQUEUE(&async_buf))                        
-                    {                                       
-                        strcpy((char *)async_buf, (char *)g_if_buffer);
-                        IF_RX_Q_ENQUEUE(async_buf);                         
-                    }
+                    {                              
+                        //memset(async_buf, 0, RNWF_IF_ASYCN_MSG_MAX);
+                        strcpy((char *)async_buf, (char *)g_if_buffer);                        
+                        IF_RX_Q_ENQUEUE(async_buf);
+                    } 
+                    else
+                    {
+#ifdef RNWF_INTERFACE_DEBUG        
+                        DBG_MSG_IF("No Free-Q\n");                
+#endif /* RNWF_INTERFACE_DEBUG */        
+                    }                        
+                    
                     if(response != NULL || format != NULL)
                     {
                         rsp_len = 0;                        
                         continue;
                     }                   
-                }                 
-                else if(strstr((char *)g_if_buffer, RNWF_AT_ERROR))
-                {
-                    if(response != NULL)
-                    {                    
-                        strcpy((char *)response, (char *)g_if_buffer+strlen(RNWF_AT_ERROR));
-                    }
                     break;
-                    result = RNWF_FAIL;                    
-                }                                                                             
-                else if(response != NULL)
-                {
-                    if(delimeter != NULL)
-                    {                                        
-                        volatile uint8_t *token, *rsp_ptr;
-
-                        rsp_ptr = (uint8_t *)strstr((char *)g_if_buffer, delimeter);                            
-                        offset =  strlen(delimeter);
-                        token = (uint8_t *)strtok((char *)rsp_ptr, "\r\n");
-
-                        /* walk through other tokens */
-                        while( token != NULL ) {                           
-                            if(strstr((char *)token, delimeter))
-                                strcat((char *)response, (char *)token+offset); 
-                                if(strstr((char *)token, "\r\nOK"))
-                                {
-                                    break;
-                                }
-                            token = (uint8_t *)strtok(NULL, "\r\n");
-                        }
-                    }   
-                    else
-                    {          
-                        uint8_t *end_ptr = NULL;
-                        if((end_ptr = (uint8_t *)strstr((char *)g_if_buffer, "\r\nOK")) != NULL)
-                        {
-                            *end_ptr = '\0';                              
-                        } 
-                        strcat((char *)response, (char *)g_if_buffer);
-                    }
-                }
-                break;
-                rsp_len = 0;
-            }                                   
-        }
-    }
-    RNWF_SET_INTERFACE_FREE();
+                }                                                    
+            }                                            
+        }               
+    }    
+    g_if_buffer[rsp_len-1] = '\0';
+    g_if_buffer[rsp_len-2] = '\0';
     
-    return result;
-    
-    
+    RNWF_SET_INTERFACE_FREE();    
+    return result;        
 }
 
 
@@ -581,13 +635,12 @@ RNWF_RESULT_t RNWF_IF_Init(void)
     
     /* Fill up the free queue will all the buffer entries */
     for(uint8_t *pMem_addr = g_async_buffer; pMem_addr < (g_async_buffer + RNWF_IF_ASYCN_BUF_MAX); pMem_addr+=RNWF_IF_ASYCN_MSG_MAX)
-    {                
+    {                    
         IF_BUF_Q_ENQUEUE(pMem_addr);        
     }
-    
-    
-    
-    RNWF_IF_SW_Reset();
+            
+    RNWF_IF_SW_Reset();    
+    RNWF_SYSTEM_SrvCtrl(RNWF_SYSTEM_ECHO_OFF, NULL);
     
     return RNWF_PASS;
 }

@@ -43,13 +43,13 @@
  
  */
 typedef enum
-{   
-    RNWF_FAIL =  0,     /**<Failure*/
-    RNWF_PASS =  1,     /**<Success*/
-    RNWF_RAW = 2,       /**<RAW mode*/
-    RNWF_COTN =  2,     /**<Retry*/                 
-    RNWF_BUSY = -1,     /**<Busy*/       
-    RNWF_TIMEOUT = -2,  /**<Timeout*/                 
+{      
+    RNWF_PASS =  0x0000,     /**<Success*/
+    RNWF_FAIL =  -1,     /**<Failure*/            
+    RNWF_RAW = -2,       /**<RAW mode*/
+    RNWF_COTN =  -3,     /**<Retry*/                 
+    RNWF_BUSY = -4,     /**<Busy*/       
+    RNWF_TIMEOUT = -5,  /**<Timeout*/                 
 }RNWF_RESULT_t;
 
 typedef enum
@@ -64,7 +64,7 @@ extern const uart_drv_interface_t UART2;
 
 #define RNWF_INTERFACE_LEN_MAX    512
 
-#define RNWF_IF_ASYCN_BUF_MAX  512
+#define RNWF_IF_ASYCN_BUF_MAX  1024
 #define RNWF_IF_ASYCN_MSG_MAX  64
 
 #define RNWF_IF_BUF_MAX     (RNWF_IF_ASYCN_BUF_MAX/RNWF_IF_ASYCN_MSG_MAX)
@@ -77,7 +77,7 @@ extern uint32_t   g_interface_timeout;
 // TODO Insert C++ class definitions if appropriate
 
 // TODO Insert declarations
-#define RNWF_INTERFACE_TIMEOUT      0x1FFFF
+#define RNWF_INTERFACE_TIMEOUT      0x7FFFF
 
 #define RNWF_INTERFACE_DEBUG        1
 
@@ -87,7 +87,7 @@ extern uint32_t   g_interface_timeout;
 
 
 #define RNWF_AT_CMD     "AT"
-#define RNWF_AT_EOL     "\r\n"
+#define RNWF_AT_EOL     "\r\n>"
 #define RNWF_AT_DONE    "OK"
 #define RNWF_AT_ERROR     "ERROR"
 
@@ -141,9 +141,9 @@ extern uint32_t   g_interface_timeout;
 
 typedef struct {
         int8_t    head; 
-        int8_t    tail;
-        int8_t    size;        
+        int8_t    tail;             
         uint32_t  queue[RNWF_IF_BUF_MAX];
+        uint8_t    size;
 }IF_QUEUE_t;
 
 // Comment a function and leverage automatic documentation with slash star star
@@ -180,7 +180,8 @@ typedef struct {
 
 RNWF_RESULT_t RNWF_IF_Init(void);
 RNWF_RESULT_t RNWF_RAW_Write(uint8_t *buffer, uint16_t len);
-RNWF_RESULT_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8_t *response, const char *format, ...);
+int16_t RNWF_RAW_Read(uint8_t *buffer, uint16_t len);
+int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8_t *response, const char *format, ...);
 RNWF_RESULT_t RNWF_EVENT_Handler(void);
 RNWF_RESULT_t RNWF_IF_SW_Reset(void);
 RNWF_RESULT_t RNWF_RESPONSE_Trim(uint8_t *buffer);

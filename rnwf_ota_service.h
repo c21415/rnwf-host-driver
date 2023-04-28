@@ -41,7 +41,7 @@ This page is for advanced users.
 
 #define DBG_MSG_OTA(args, ...)    printf("[OTA]:"args, ##__VA_ARGS__)
 
-#define OTA_BUF_LEN_MAX         512
+#define OTA_BUF_LEN_MAX         2048
 
 /**
  @defgroup OTA_GRP OTA API

@@ -40,6 +40,8 @@ This page introduces the user to the topic.
 
 #include <xc.h> // include processor files - each processor file is guarded.  
 
+#define RNWF_SET_ECHO_OFF     "ATE0\r\n"
+
 #define RNWF_RESET_TARGET   "AT+RST\r\n"
 #define RNWF_GET_MAN_ID     "AT+GMI\r\n"
 
@@ -66,6 +68,7 @@ This page introduces the user to the topic.
  */
 typedef enum{
     RNWF_SYSTEM_RESET,             /**<Request/Trigger reset the system */
+    RNWF_SYSTEM_ECHO_OFF,          /**<Request/Trigger reset the system */            
     RNWF_SYSTEM_GET_MAN_ID,        /**<Get the manufacturing ID */
     RNWF_SYSTEM_SET_TIME_UNIX,     /**<Set the sytem time in UNIX format */            
     RNWF_SYSTEM_SET_TIME_NTP,      /**<Set the system time in NTP format */            
