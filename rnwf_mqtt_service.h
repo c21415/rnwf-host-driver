@@ -48,9 +48,9 @@ This page is for advanced users.
 /* MQTT Configuration Commands */
 #define RNWF_MQTT_SET_BROKER_URL    "AT+MQTTC=1,\"%s\"\r\n"
 #define RNWF_MQTT_SET_BROKER_PORT   "AT+MQTTC=2,%d\r\n"
-#define RNWF_MQTT_SET_CLIENT_ID     "AT+MQTTC=3,%s\r\n"
-#define RNWF_MQTT_SET_USERNAME      "AT+MQTTC=4,%s\r\n"
-#define RNWF_MQTT_SET_PASSWORD      "AT+MQTTC=5,%s\r\n"
+#define RNWF_MQTT_SET_CLIENT_ID     "AT+MQTTC=3,\"%s\"\r\n"
+#define RNWF_MQTT_SET_USERNAME      "AT+MQTTC=4,\"%s\"\r\n"
+#define RNWF_MQTT_SET_PASSWORD      "AT+MQTTC=5,\"%s\"\r\n"
 #define RNWF_MQTT_SET_KEEPALIVE     "AT+MQTTC=6,%d\r\n"
 #define RNWF_MQTT_SET_TLS_CONF      "AT+MQTTC=7,%d\r\n"
 #define RNWF_MQTT_SET_PROTO_VER     "AT+MQTTC=8,%d\r\n"
@@ -133,6 +133,7 @@ typedef struct
 {
     const char *url;            /**<MQTT Broker/Server URL */    
     uint16_t port;              /**<MQTT Broker/Server Port */
+    const char *clientid;
     const char *username;       /**<MQTT User Name Credential */
     const char *password;       /**<MQTT Password Credential */ 
     uint8_t     tls_idx;

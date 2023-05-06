@@ -85,12 +85,10 @@ extern uint32_t   g_interface_timeout;
 #define RNWF_SET_INTERFACE_BUSY()     (g_interface_state = RNWF_INTERFACE_BUSY)             
 #define RNWF_SET_INTERFACE_FREE()     (g_interface_state = RNWF_INTERFACE_FREE)         
 
-
 #define RNWF_AT_CMD     "AT"
 #define RNWF_AT_EOL     "\r\n>"
 #define RNWF_AT_DONE    "OK"
 #define RNWF_AT_ERROR     "ERROR"
-
 
 #define RNWF_ARG_DELIMETER          ":"
 

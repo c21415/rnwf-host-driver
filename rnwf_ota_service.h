@@ -41,7 +41,7 @@ This page is for advanced users.
 
 #define DBG_MSG_OTA(args, ...)    printf("[OTA]:"args, ##__VA_ARGS__)
 
-#define OTA_BUF_LEN_MAX         2048
+#define OTA_BUF_LEN_MAX         4086
 
 /**
  @defgroup OTA_GRP OTA API
@@ -83,7 +83,9 @@ typedef enum
  */
 typedef enum
 {
-    RNWF_EVENT_MAKE_UART,   /**<Change to UART mode */     
+    RNWF_EVENT_MAKE_UART,   /**<Change to UART mode */
+    RNWF_EVENT_DWLD_START,  /**<FW Download complete */
+    RNWF_EVENT_DWLD_DONE,   /**<FW Download complete */
      
 }RNWF_OTA_EVENT_t;
 
@@ -149,7 +151,7 @@ extern uint32_t g_Ota_SocketId;
 
 extern RNWF_OTA_CFG_t gOta_CfgData;
 
-
+extern uint32_t otaFileSize;
 /**
  * @brief MQTT Service Layer API to handle system operations.
  * 

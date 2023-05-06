@@ -197,6 +197,8 @@ typedef struct {
 }RNWF_NET_SOCKET_CONFIG_t;
 
 
+void RNWF_EXIT_RAW_Mode(void);
+
 /**
  @brief Network socket events callback function type 
  

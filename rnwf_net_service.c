@@ -8,6 +8,7 @@
 /* This section lists the other files that are included in this file.
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../../timer/delay.h"
@@ -59,10 +60,9 @@ RNWF_RESULT_t RNWF_NET_SOCK_SrvCtrl( RNWF_NET_SOCK_SERVICE_t request, void *inpu
         case RNWF_NET_SOCK_TCP_OPEN: 
         {
             RNWF_NET_SOCKET_t *socket = (RNWF_NET_SOCKET_t*)(input); 
-            uint8_t socket_id[32];
+            volatile uint8_t socket_id[32];
             if(RNWF_CMD_SEND_OK_WAIT(RNWF_SOCK_OPEN_RESP, socket_id, RNWF_SOCK_OPEN_TCP) == RNWF_PASS)
             {
-                RNWF_RESPONSE_Trim(socket->sock_master);
                 sscanf(socket_id, "%lu", &socket->sock_master);
                 switch(socket->bind_type)
                 {
@@ -74,10 +74,10 @@ RNWF_RESULT_t RNWF_NET_SOCK_SrvCtrl( RNWF_NET_SOCK_SERVICE_t request, void *inpu
                         break;
                     case RNWF_BIND_MCAST:
                         result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_BIND_MCAST, socket->sock_master, socket->sock_addr, socket->sock_port);
-                        break;   
+                        break;
                     default:
                         break;
-                }   
+                }
                 if(socket->tls_conf)
                     result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_CONFIG_TLS, socket->sock_master, socket->tls_conf);
             }                                    
