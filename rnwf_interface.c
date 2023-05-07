@@ -589,8 +589,13 @@ int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8
                 }
                 else
                 {
-                    if(strstr(g_if_buffer, RNWF_AT_ERROR))
+                    if((g_if_buffer[0] == 'E') && (g_if_buffer[1] == 'R' && (g_if_buffer[2] == 'R')))
                     {
+                        g_if_buffer[rsp_len-1] = '\0';
+                        g_if_buffer[rsp_len-2] = '\0';
+#ifdef RNWF_INTERFACE_DEBUG
+                        printf("%s\r\n", g_if_buffer);
+#endif
                         if(response != NULL)
                         {
                             strcpy((char *)response, (char *)g_if_buffer+sizeof(RNWF_AT_ERROR));

@@ -40,13 +40,12 @@ RNWF_RESULT_t RNWF_NET_SOCK_SrvCtrl( RNWF_NET_SOCK_SERVICE_t request, void *inpu
             if(input == NULL)
                 break;
             
+            result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_DHCPS_DISABLE);
             const char **dhcps_cfg_list = input;                        
             if(dhcps_cfg_list[0] != NULL)
                 result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_NETIF_SET_IP, dhcps_cfg_list[0]);            
             if(dhcps_cfg_list[1] != NULL)
-                result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_DHCPS_SET_POOL, dhcps_cfg_list[1]);
-            if(dhcps_cfg_list[2] != NULL)
-                result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_DHCPS_SET_GW, dhcps_cfg_list[2]); 
+                result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_DHCPS_POOL_START, dhcps_cfg_list[1]);
             
             result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_DHCPS_ENABLE);
             
@@ -182,8 +181,7 @@ int16_t RNWF_NET_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  
     int16_t result = RNWF_FAIL;
                                         
     if(RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_READ, socket, RNWF_BINARY_MODE, length) == RNWF_RAW)
-    {                                            
-        //result = RNWF_CMD_SEND_OK_WAIT(NULL, buffer, NULL); 
+    {
         result = RNWF_RAW_Read(buffer, length);
     }
     return result;

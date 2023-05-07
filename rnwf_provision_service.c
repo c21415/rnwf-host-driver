@@ -121,24 +121,24 @@ RNWF_RESULT_t RNWF_PROV_Process(uint32_t socket, uint16_t rx_len) {
     RNWF_WIFI_PARAM_t wifiConfig;
     uint8_t prov_buf[PROV_BUF_LEN_MAX];
     
-    if(RNWF_NET_TCP_SOCK_Read(socket, rx_len, (uint8_t *)prov_buf) == RNWF_PASS)
+    if(RNWF_NET_TCP_SOCK_Read(socket, rx_len, (uint8_t *)prov_buf) > 0)
     {
         if(RNWF_PROV_Parse(prov_buf, &wifiConfig) == RNWF_PASS)
         {
+            RNWF_NET_SOCK_SrvCtrl(RNWF_NET_SOCK_CLOSE, &socket);
             wifiConfig.mode = RNWF_WIFI_MODE_STA;
             wifiConfig.autoconnect = 1;
             if(gProv_CallBack_Handler)
                 gProv_CallBack_Handler(RNWF_PROV_COMPLTE, (uint8_t *)&wifiConfig);
+            return RNWF_PASS;
         }
         else
         {
             if(gProv_CallBack_Handler)
                 gProv_CallBack_Handler(RNWF_PROV_FAILURE, NULL);
-            return RNWF_FAIL;
         }
-        
-    }        
-    return RNWF_PASS;
+    }
+    return RNWF_FAIL;
 }
 
 
@@ -228,7 +228,7 @@ RNWF_RESULT_t RNWF_PROV_SrvCtrl( RNWF_MQTT_SERVICE_t request, void *input)  {
             RNWF_WIFI_SrvCtrl(RNWF_WIFI_SET_SRVC_CALLBACK, RNWF_PROV_WIFI_Callback);
             RNWF_NET_SOCK_SrvCtrl(RNWF_NET_SOCK_SET_SRVC_CALLBACK, RNWF_PROV_SOCKET_Callback);
 
-            const char *dhcps_cfg[] = {"192.168.1.1/24", "192.168.1.10", "192.168.1.0"};        
+            const char *dhcps_cfg[] = {"192.168.1.1/24", "192.168.1.10"};
             RNWF_NET_SOCK_SrvCtrl(RNWF_NET_DHCP_SERVER_ENABLE, dhcps_cfg);  
 
             /* Wi-Fii Connectivity */
@@ -241,9 +241,8 @@ RNWF_RESULT_t RNWF_PROV_SrvCtrl( RNWF_MQTT_SERVICE_t request, void *input)  {
         {
             /* RNWF Application Callback register */
             RNWF_WIFI_SrvCtrl(RNWF_WIFI_SET_SRVC_CALLBACK, NULL);
-            RNWF_NET_SOCK_SrvCtrl(RNWF_NET_SOCK_SET_SRVC_CALLBACK, NULL);                        
-            RNWF_WIFI_SrvCtrl(RNWF_SET_WIFI_PARAMS, NULL);                        
-            RNWF_NET_SOCK_SrvCtrl(RNWF_NET_DHCP_SERVER_DISABLE, NULL);  
+            RNWF_NET_SOCK_SrvCtrl(RNWF_NET_SOCK_SET_SRVC_CALLBACK, NULL);
+            RNWF_NET_SOCK_SrvCtrl(RNWF_NET_DHCP_SERVER_DISABLE, NULL);
         }
         break;
         
@@ -281,7 +280,6 @@ RNWF_RESULT_t RNWF_PROV_SrvInit(RNWF_PROV_MODE_t provMode)  {
            
 }
 #endif
-
 /* *****************************************************************************
  End of File
  */

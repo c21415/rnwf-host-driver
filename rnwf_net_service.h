@@ -49,10 +49,11 @@ This page introduces the user to the topic.
 #define RNWF_SOCK_TLS_CFG_LEN_MAX       64
 
 
-#define RNWF_DHCPS_ENABLE               "AT+DHCPSC=1,1\r\n"
-#define RNWF_DHCPS_DISABLE              "AT+DHCPSC=1,0\r\n"
-#define RNWF_DHCPS_SET_POOL             "AT+DHCPSC=2,\"%s\"\r\n"
-#define RNWF_DHCPS_SET_GW               "AT+DHCPSC=3,\"%s\"\r\n"
+#define RNWF_DHCPS_ENABLE               "AT+DHCPSC=0,1,1\r\n"
+#define RNWF_DHCPS_DISABLE              "AT+DHCPSC=0,1,0\r\n"
+#define RNWF_DHCPS_POOL_START           "AT+DHCPSC=0,2,\"%s\"\r\n"
+
+#define RNWF_DHCPS_SET_GW               "AT+DHCPSC=0,10,\"%s\"\r\n"
 
 #define RNWF_NETIF_SET_IP               "AT+NETIFC=0,40,\"%s\"\r\n"
 
@@ -97,6 +98,13 @@ This page introduces the user to the topic.
  @{
  */
 
+/**
+ @brief Network Interfaces List
+ 
+ */
+typedef enum {
+    RNWF_IF_WIFI,
+}RNWF_NET_IFS_t;
 
 /**
  @brief Network and Socket service List
