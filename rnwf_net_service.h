@@ -158,7 +158,8 @@ typedef enum {
     RNWF_NET_SOCK_EVENT_CONNECTED,      /**<Socket connected event*/
     RNWF_NET_SOCK_EVENT_TLS_DONE,       /**<TLS handshake done event*/
     RNWF_NET_SOCK_EVENT_DISCONNECTED,   /**<Socket disonnected event*/
-    RNWF_NET_SOCK_EVENT_READ,           /**<Socket data read event*/    
+    RNWF_NET_SOCK_EVENT_READ,           /**<Socket data read event*/
+    RNWF_NET_SOCK_EVENT_ERROR,          /**<Socket error event*/
 }RNWF_NET_SOCK_EVENT_t;
 
 

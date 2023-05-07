@@ -253,7 +253,7 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
     
 #ifdef RNWF_INTERFACE_DEBUG    
 //    DBG_MSG_IF("Async Message -> %s\n", p_msg);
-      DBG_MSG_IF("Async Arguments-> %s\n", p_arg);
+//      DBG_MSG_IF("Async Arguments-> %s\n", p_arg);
 #endif
     
     switch(p_msg[0])                        
@@ -276,7 +276,7 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
                 }    
                 else if(strstr((char *)p_msg, RNWF_EVENT_LINK_LOSS) || strstr((char *)p_msg, RNWF_EVENT_ERROR))
                 {        
-                    wifi_cb_func(RNWF_DISCONNECTED, p_arg);         
+                    wifi_cb_func(RNWF_DISCONNECTED, p_arg);
                 }
                 else if(strstr((char *)p_msg, RNWF_EVENT_LINK_UP))
                 {                
@@ -319,8 +319,8 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
                     event = RNWF_NET_SOCK_EVENT_TLS_DONE;
                 }
                 else if(strstr((char *)p_msg, RNWF_EVENT_SOCK_CONNECTED))
-                {                 
-                    event = RNWF_NET_SOCK_EVENT_CONNECTED;                    
+                {
+                        event = RNWF_NET_SOCK_EVENT_CONNECTED;
                 }
                 else if(strstr((char *)p_msg, RNWF_EVENT_SOCK_CLOSE))
                 {                          
@@ -332,8 +332,11 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
                     sscanf((char *)p_arg, "%*lu %u", &rx_len);  
                     p_arg = (uint16_t *)&rx_len;                    
                     event = RNWF_NET_SOCK_EVENT_READ;
-
                 }    
+                else if(strstr((char *)p_msg, RNWF_EVENT_SOCK_ERROR))
+                {
+                    event = RNWF_NET_SOCK_EVENT_ERROR;
+                }
 
                 netSock_cb_func(socket_id, event, p_arg);                    
             }
@@ -606,6 +609,9 @@ int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8
                     {
                         memset(async_buf, 0, RNWF_IF_ASYCN_MSG_MAX);
                         strncpy((char *)async_buf, (char *)g_if_buffer, RNWF_IF_ASYCN_MSG_MAX);
+#ifdef RNWF_INTERFACE_DEBUG
+                        DBG_MSG_IF("AEC[%d] -> %s\n", rsp_len, async_buf);
+#endif /* RNWF_INTERFACE_DEBUG */
                         IF_RX_Q_ENQUEUE(async_buf);
                     }
                     else
