@@ -391,7 +391,7 @@ RNWF_RESULT_t RNWF_RESPONSE_Trim(uint8_t *buffer)
 
 void RNWF_EXIT_RAW_Mode(void)
 {
-    uint8_t rawExitCmd = "+++";
+    uint8_t rawExitCmd[] = "+++";
     RNWF_RAW_Write(rawExitCmd, 3);
 }
 
@@ -441,15 +441,16 @@ int16_t RNWF_RAW_Read(uint8_t *buffer, uint16_t len)
 RNWF_RESULT_t RNWF_RAW_Write(uint8_t *buffer, uint16_t len)
 {        
     while(len > 0)
-    {        
+    {
         if(UART2.IsTxReady()) 
-        {                       
+        {
             UART2.Write(*buffer++); 
             while(!UART2.IsTxDone());            
             len--;
         }
     }
-    return RNWF_PASS;
+    //check the response
+    return RNWF_CMD_RSP_Send(NULL, NULL, NULL, NULL);
 }
 
 
