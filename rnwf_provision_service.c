@@ -57,6 +57,33 @@ RNWF_NET_SOCKET_t provision_socket = {
         };
 
 #ifdef PROV_MOBILE_APP
+/*Parse or translate security type received from mobile app*/
+RNWF_WIFI_SECURITY_t RNWF_PROV_ParseAuth(uint8_t secType)
+{
+    RNWF_WIFI_SECURITY_t authType;
+    
+    switch(secType)
+    {
+        case 1:
+            authType = secType - 1;
+            break;
+        case 2:
+            authType = secType;
+            break;
+        case 4:
+            authType = secType + 1;
+            break;
+            
+        //To-Do: 
+        //Enterprise mode security type if applicable
+            
+        default:
+            printf("Invalid security type\r\n");
+            break;
+    }
+    return authType;
+}
+            
 /* Parse Wi-Fi configuration file */
 /* Format is APP_WIFI_PROV_WIFI_CONFIG_ID,<SSID>,<AUTH>,<PASSPHRASE>*/
 RNWF_RESULT_t RNWF_PROV_APP_Parse(uint8_t *wifiCofnig, RNWF_WIFI_PARAM_t *wifi_config)
@@ -74,19 +101,23 @@ RNWF_RESULT_t RNWF_PROV_APP_Parse(uint8_t *wifiCofnig, RNWF_WIFI_PARAM_t *wifi_c
         p = strtok(NULL, ",");
         if (p) 
         {
-//            uint8_t security = (RNWF_WIFI_SECURITY_t)atoi(p);
-#if 0            
-            switch(security)
-            {
-                case 0:
-                case 1:
-                case 2:    
-                case 3:
-            }
-#endif            
-            wifi_config->security = (RNWF_WIFI_SECURITY_t)atoi(p);
+            uint8_t security = (RNWF_WIFI_SECURITY_t)atoi(p);
             
-            if (RNWF_OPEN < wifi_config->security &&  wifi_config->security < RNWF_WPA3)
+            #if 0            
+                    switch(security)
+                    {
+                        case 0:
+                        case 1:
+                        case 2:    
+                        case 3:
+                    }
+            #endif 
+            
+            wifi_config->security = RNWF_PROV_ParseAuth(security);
+                    
+//            wifi_config->security = (RNWF_WIFI_SECURITY_t)atoi(p);
+            
+            if (RNWF_OPEN < wifi_config->security &&  wifi_config->security <= RNWF_WPA3)
             {
                 p = strtok(NULL, ",");
                 if (p) 
