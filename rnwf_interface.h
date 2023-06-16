@@ -184,6 +184,8 @@ RNWF_RESULT_t RNWF_EVENT_Handler(void);
 RNWF_RESULT_t RNWF_IF_SW_Reset(void);
 RNWF_RESULT_t RNWF_RESPONSE_Trim(uint8_t *buffer);
 
+uint16_t RNWF_IF_Write(uint8_t *buffer, uint16_t len);
+uint16_t RNWF_IF_Read(uint8_t *buffer, uint16_t len);
                   
 #define RNWF_CMD_SEND_OK_WAIT(delimeter, response, format, ...) RNWF_CMD_RSP_Send(RNWF_AT_DONE, delimeter, response, format, ##__VA_ARGS__)
 #define RNWF_CMD_SEND_RESP_WAIT(cmd_complete, delimeter, response, format, ...) RNWF_CMD_RSP_Send(cmd_complete, delimeter, response, format, __VA_ARGS__)

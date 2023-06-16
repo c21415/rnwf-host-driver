@@ -68,7 +68,6 @@ RNWF_INTERFACE_STATE_t   g_interface_state = RNWF_INTERFACE_FREE;
 
 uint32_t g_interface_timeout = RNWF_INTERFACE_TIMEOUT;
 
-uint8_t g_if_buffer[RNWF_INTERFACE_LEN_MAX];
 
 uint8_t g_async_buffer[RNWF_IF_ASYCN_BUF_MAX];
 
@@ -302,7 +301,7 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
         case 'S':
         {
             uint32_t socket_id;
-            RNWF_NET_SOCK_EVENT_t event;            
+            RNWF_NET_SOCK_EVENT_t event = RNWF_NET_SOCK_EVENT_UNDEFINED;
                         
             /** Service Layer Handler */
             for(uint8_t i = 0; i < RNWF_NET_SOCK_SERVICE_CB_MAX; i++)
@@ -389,6 +388,30 @@ RNWF_RESULT_t RNWF_RESPONSE_Trim(uint8_t *buffer)
     return RNWF_FAIL;
 }
 
+uint16_t RNWF_IF_Read(uint8_t *buffer, uint16_t len)
+{
+    uint16_t read_cnt = 0;
+    while((read_cnt < len) && g_interface_timeout)
+    {
+        //later make it timeout
+        g_interface_timeout--;
+        if(UART2->IsRxReady())
+        {
+            g_interface_timeout = RNWF_INTERFACE_TIMEOUT;
+            buffer[read_cnt++] = UART2.Read();
+        }
+    }
+    return read_cnt;
+}
+
+RNWF_RESULT_t RNWF_RAW_Write(uint8_t *buffer, uint16_t len)
+{
+    // Write the bytes to Interface
+    RNWF_IF_Write(buffer, len);
+    //check the response
+    return RNWF_CMD_RSP_Send(NULL, NULL, NULL, NULL);
+}
+
 void RNWF_EXIT_RAW_Mode(void)
 {
     uint8_t rawExitCmd[] = "+++";
@@ -396,50 +419,30 @@ void RNWF_EXIT_RAW_Mode(void)
 }
 
 
-
-
 int16_t RNWF_RAW_Read(uint8_t *buffer, uint16_t len)
 {
-    volatile uint16_t readCnt = 0;
     uint8_t tempBuf[4] = {0, 0, 0, 0};
-    uint8_t *bufPtr = buffer;
     volatile int16_t result = RNWF_TIMEOUT;
 
-    g_interface_timeout = RNWF_INTERFACE_TIMEOUT;
-
-    while(g_interface_timeout--) //later make it timeout
+    if((result = RNWF_IF_Read(buffer, len)) == len) // Complete response is copied
     {
-        if(UART2.IsRxReady())
-        {   
-            bufPtr[readCnt++] = UART2.Read();
-            if(readCnt == len) // Complete response is copied
-            {
-                result = readCnt;
-                bufPtr = tempBuf;
-                readCnt = 0;
-            }
-        }
-        
-        if((result > 0) && (readCnt > 3))
+        if(RNWF_IF_Read(tempBuf, 4) == 4)
         {
-            if((tempBuf[readCnt - 1] == '\n') && (tempBuf[readCnt - 2] == '\r') &&
-                    (tempBuf[readCnt - 3] == 'K') && (tempBuf[readCnt - 4] == 'O'))
+            if(memcmp(tempBuf, "OK\r\n", 4) == 0)
             {
                 return result;
             }
-            readCnt = 0;
+            else
+            {
+                RNWF_EXIT_RAW_Mode();
+            }
         }
-    }
-    if(readCnt)
-    {
-        RNWF_EXIT_RAW_Mode();
-        result = readCnt;
     }
     return result;
 }
 
-RNWF_RESULT_t RNWF_RAW_Write(uint8_t *buffer, uint16_t len)
-{        
+uint16_t RNWF_IF_Write(uint8_t *buffer, uint16_t len)
+{
     while(len > 0)
     {
         if(UART2.IsTxReady()) 
@@ -449,8 +452,8 @@ RNWF_RESULT_t RNWF_RAW_Write(uint8_t *buffer, uint16_t len)
             len--;
         }
     }
-    //check the response
-    return RNWF_CMD_RSP_Send(NULL, NULL, NULL, NULL);
+
+    return RNWF_PASS;
 }
 
 
@@ -490,6 +493,7 @@ RNWF_RESULT_t RNWF_EVENT_Handler(void)
  */
 int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8_t *response, const char *format, ...)
 {
+    static uint8_t g_if_buffer[RNWF_INTERFACE_LEN_MAX];
     uint8_t *p_frame = g_if_buffer;
     uint16_t result = RNWF_PASS;
     size_t cmd_len;
@@ -543,7 +547,6 @@ int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8
             //RAW mode
             if(g_if_buffer[rsp_len-1] == '#')
             {
-                g_if_buffer[rsp_len-1] == '\0';
 #ifdef RNWF_INTERFACE_DEBUG       
                 printf("RAW Mode!\n");
 #endif /* RNWF_INTERFACE_DEBUG */                                     
@@ -566,7 +569,7 @@ int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8
                     {
                         if(delimeter != NULL)
                         {
-                            volatile uint8_t *token, *rsp_ptr;
+                            uint8_t *token, *rsp_ptr;
 
                             rsp_ptr = (uint8_t *)strstr((char *)g_if_buffer, delimeter);
                             offset =  strlen(delimeter);
@@ -575,7 +578,10 @@ int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8
                             /* walk through other tokens */
                             while( token != NULL ) {
                                 if(strstr((char *)token, delimeter))
+                                {
+                                    strcat((char *)response, " \0");
                                     strcat((char *)response, (char *)token+offset);
+                                }
                                 token = (uint8_t *)strtok(NULL, "\r\n");
                             }
                         }

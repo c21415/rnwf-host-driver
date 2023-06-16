@@ -44,6 +44,10 @@ This page introduces the user to the topic.
 
 #define RNWF_RESET_TARGET       "AT+RST\r\n"
 #define RNWF_GET_MAN_ID         "AT+GMI\r\n"
+#define RNWF_GET_MOD_ID         "AT+GMI\r\n"
+#define RNWF_GET_REV_ID         "AT+GMR\r\n"
+#define RNWF_GET_DEV_INFO       "AT+DI\r\n"
+
 
 #define RNWF_GET_SYS_TIME       "AT+TIME,3\r\n"
 
@@ -72,6 +76,8 @@ typedef enum{
     RNWF_SYSTEM_RESET,             /**<Request/Trigger reset the system */
     RNWF_SYSTEM_ECHO_OFF,          /**<Request/Trigger reset the system */            
     RNWF_SYSTEM_GET_MAN_ID,        /**<Get the manufacturing ID */
+    RNWF_SYSTEM_SW_REV,
+    RNWF_SYSTEM_DEV_INFO,
     RNWF_SYSTEM_SET_TIME_UNIX,     /**<Set the sytem time in UNIX format */            
     RNWF_SYSTEM_SET_TIME_NTP,      /**<Set the system time in NTP format */            
     RNWF_SYSTEM_SET_TIME_STRING,   /**<Set the system time in string(YYYY-MM-DDTHH:MM:SS.00Z) format */                        

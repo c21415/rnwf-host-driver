@@ -42,11 +42,22 @@ RNWF_RESULT_t RNWF_SYSTEM_SrvCtrl(RNWF_SYSTEM_SERVICE_t request, uint8_t *input)
         {
             RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SET_ECHO_OFF);
         }
-        break;
-        case RNWF_SYSTEM_GET_MAN_ID:
+        break;case RNWF_SYSTEM_GET_MAN_ID:
         {
             *(uint8_t*)input = '\0';
             RNWF_CMD_SEND_OK_WAIT("+GMI:", input, RNWF_GET_MAN_ID);
+        }
+        break;
+        case RNWF_SYSTEM_SW_REV:
+        {
+            *(uint8_t*)input = '\0';
+            RNWF_CMD_SEND_OK_WAIT("+GMR:", input, RNWF_GET_REV_ID);
+        }
+        break;
+        case RNWF_SYSTEM_DEV_INFO:
+        {
+            *(uint8_t*)input = '\0';
+            RNWF_CMD_SEND_OK_WAIT("+DI:", input, RNWF_GET_DEV_INFO);
         }
         break;
         case RNWF_SYSTEM_GET_CERT_LIST:
@@ -58,7 +69,7 @@ RNWF_RESULT_t RNWF_SYSTEM_SrvCtrl(RNWF_SYSTEM_SERVICE_t request, uint8_t *input)
         case RNWF_SYSTEM_GET_KEY_LIST:
         {
             *(uint8_t*)input = '\0';
-            RNWF_CMD_SEND_OK_WAIT("+FS:2,1,", input, RNWF_GET_KEY_LIST);
+            RNWF_CMD_SEND_OK_WAIT("+FS:2,2,", input, RNWF_GET_KEY_LIST);
         }
         break;
         case RNWF_SYSTEM_GET_TIME:
