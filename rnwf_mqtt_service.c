@@ -135,7 +135,7 @@ RNWF_RESULT_t RNWF_MQTT_SRVC_Callback(RNWF_MQTT_EVENT_t event, uint8_t *p_str)
         break;
     }
     
-    return result; // No need to invoke APP callback
+    return RNWF_COTN; // No need to invoke APP callback
 }
 /* ************************************************************************** */
 /* ************************************************************************** */
