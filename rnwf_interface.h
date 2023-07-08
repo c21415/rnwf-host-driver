@@ -33,7 +33,7 @@
 
 #include <xc.h> // include processor files - each processor file is guarded.  
 
-#include "../../uart/uart_drv_interface.h"
+#include "../../uart/usart2.h"
 
 
 #define DBG_MSG_IF(args, ...)    printf("[IF]:"args, ##__VA_ARGS__)
@@ -58,14 +58,20 @@ typedef enum
     RNWF_INTERFACE_BUSY
 }RNWF_INTERFACE_STATE_t;
 
-extern const uart_drv_interface_t UART2;
 
 // TODO Insert appropriate #include <>
 
-#define RNWF_INTERFACE_LEN_MAX    512
+#ifdef MQTT_APP
+#define RNWF_INTERFACE_LEN_MAX    1024
 
+#define RNWF_IF_ASYCN_MSG_MAX  (512+256)
+#define RNWF_IF_ASYCN_MSG_CNT  2
+#define RNWF_IF_ASYCN_BUF_MAX  RNWF_IF_ASYCN_MSG_MAX*RNWF_IF_ASYCN_MSG_CNT
+#else
+#define RNWF_INTERFACE_LEN_MAX    512
 #define RNWF_IF_ASYCN_BUF_MAX  1024
 #define RNWF_IF_ASYCN_MSG_MAX  64
+#endif
 
 #define RNWF_IF_BUF_MAX     (RNWF_IF_ASYCN_BUF_MAX/RNWF_IF_ASYCN_MSG_MAX)
 
@@ -110,6 +116,9 @@ extern uint32_t   g_interface_timeout;
 /*  DNS Event Code */
 #define RNWF_EVENT_DNS_RESOLVE    "DNSRESOLV:"
 #define RNWF_EVENT_DNS_ERROR      "DNSERR:"
+
+/*  TIME Event Code */
+#define RNWF_EVENT_TIME             "TIME:"
 
 /*  INFO Event Code */
 #define RNWF_EVENT_INFO           "INFO:"

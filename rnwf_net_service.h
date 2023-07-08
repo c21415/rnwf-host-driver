@@ -213,7 +213,7 @@ void RNWF_EXIT_RAW_Mode(void);
  @brief Network socket events callback function type 
  
  */
-typedef void (*RNWF_NET_SOCK_CALLBACK_t)(uint32_t sock, RNWF_NET_SOCK_EVENT_t, uint8_t *);
+typedef RNWF_RESULT_t (*RNWF_NET_SOCK_CALLBACK_t)(uint32_t sock, RNWF_NET_SOCK_EVENT_t, uint8_t *);
 
 
 /**

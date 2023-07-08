@@ -45,6 +45,8 @@ This page is for advanced users.
 
 // TODO Insert declarations
 
+#define DBG_MSG_MQTT(args, ...)      printf("[MQTT]:"args, ##__VA_ARGS__)
+
 /* MQTT Configuration Commands */
 #define RNWF_MQTT_SET_BROKER_URL    "AT+MQTTC=1,\"%s\"\r\n"
 #define RNWF_MQTT_SET_BROKER_PORT   "AT+MQTTC=2,%d\r\n"
@@ -90,7 +92,7 @@ This page is for advanced users.
 #define MQTT_PORT_ECN_NO_AUTH           8883
 
 
-
+#define RNWF_MQTT_SERVICE_CB_MAX        2
 /**
  @defgroup MQTT_GRP MQTT Cloud API
  @{
@@ -111,6 +113,7 @@ typedef enum
     RNWF_MQTT_SUBSCRIBE_QOS2,       /**<Subscribe to QoS2 Topics */
     RNWF_MQTT_PUBLISH,              /**<Publis to MQTT Broker*/
     RNWF_MQTT_SET_CALLBACK,         /**<Configure the MQTT Application Callback*/              
+    RNWF_MQTT_SET_SRVC_CALLBACK,         /**<Configure the MQTT Application Callback*/                          
 }RNWF_MQTT_SERVICE_t;
 
 
@@ -123,6 +126,9 @@ typedef enum
     RNWF_MQTT_CONNECTED,    /**<Connected to MQTT broker event */
     RNWF_MQTT_DISCONNECTED, /**<Disconnected from MQTT broker event*/   
     RNWF_MQTT_SUBCRIBE_MSG,  /**<Event to report received MQTT message*/   
+    RNWF_MQTT_SUBCRIBE_ACK,
+    RNWF_MQTT_PUBLIC_ACK,     
+    RNWF_MQTT_DPS_STATUS,       
 }RNWF_MQTT_EVENT_t;
 
 /**
@@ -130,14 +136,15 @@ typedef enum
  
  */
 typedef struct 
-{
+{    
     const char *url;            /**<MQTT Broker/Server URL */    
-    uint16_t port;              /**<MQTT Broker/Server Port */
     const char *clientid;
     const char *username;       /**<MQTT User Name Credential */
     const char *password;       /**<MQTT Password Credential */ 
+    uint16_t port;              /**<MQTT Broker/Server Port */
     uint8_t     tls_idx;
-    uint8_t     *tls_conf;
+    uint8_t     azure_dps;
+    uint8_t     *tls_conf;    
 }RNWF_MQTT_CFG_t;
 
 /**
@@ -180,8 +187,8 @@ typedef struct
     RNWF_MQTT_MSG_t isNew;          /**<Indicates message is new or duplicate */
     RNWF_MQTT_QOS_t qos;            /**<QoS type for the message ::RNWF_MQTT_QOS_t */
     RNWF_MQTT_RETAIN_t isRetain;    /**<Retain flag for the publish message */
-    const uint8_t *topic;           /**<Publish topic for the message */
-    const uint8_t *message;         /**<Indicates message is new or duplicate */               
+    const char *topic;           /**<Publish topic for the message */
+    const char *message;         /**<Indicates message is new or duplicate */               
 }RNWF_MQTT_FRAME_t;
 
 
@@ -189,14 +196,14 @@ typedef struct
  @brief MQTT Callback Function definition
  
  */
-typedef void (*RNWF_MQTT_CALLBACK_t)(RNWF_MQTT_EVENT_t, uint8_t *);
+typedef RNWF_RESULT_t (*RNWF_MQTT_CALLBACK_t)(RNWF_MQTT_EVENT_t, uint8_t *);
 
 
 /**
  @brief MQTT Callback Function handler
  
  */
-extern RNWF_MQTT_CALLBACK_t gMqtt_CallBack_Handler;
+extern RNWF_MQTT_CALLBACK_t gMqtt_CallBack_Handler[RNWF_MQTT_SERVICE_CB_MAX];
 
 /**
  * @brief MQTT Service Layer API to handle system operations.

@@ -97,6 +97,7 @@ typedef enum {
     RNWF_DHCP_DONE,             /**<Wi-Fi DHCP complete event code*/
     RNWF_SCAN_INDICATION,       /**<Scan indication event to report each scan list */
     RNWF_SCAN_DONE,             /**<Scan complete event code*/
+    RNWF_SNTP_UP,
 }RNWF_WIFI_EVENT_t;
 
 /**

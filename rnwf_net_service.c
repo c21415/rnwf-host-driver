@@ -59,10 +59,10 @@ RNWF_RESULT_t RNWF_NET_SOCK_SrvCtrl( RNWF_NET_SOCK_SERVICE_t request, void *inpu
         case RNWF_NET_SOCK_TCP_OPEN: 
         {
             RNWF_NET_SOCKET_t *socket = (RNWF_NET_SOCKET_t*)(input); 
-            int8_t socket_id[32];
+            uint8_t socket_id[32];
             if(RNWF_CMD_SEND_OK_WAIT(RNWF_SOCK_OPEN_RESP, (uint8_t *)socket_id, RNWF_SOCK_OPEN_TCP) == RNWF_PASS)
             {
-                sscanf(socket_id, "%lu", &socket->sock_master);
+                sscanf((char *)socket_id, "%lu", &socket->sock_master);
                 switch(socket->bind_type)
                 {
                     case RNWF_BIND_LOCAL:
@@ -77,7 +77,7 @@ RNWF_RESULT_t RNWF_NET_SOCK_SrvCtrl( RNWF_NET_SOCK_SERVICE_t request, void *inpu
                     default:
                         break;
                 }
-                if(socket->tls_conf)
+                if(socket->tls_conf && result == RNWF_PASS)
                     result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_CONFIG_TLS, socket->sock_master, socket->tls_conf);
             }                                    
             break;
@@ -87,9 +87,9 @@ RNWF_RESULT_t RNWF_NET_SOCK_SrvCtrl( RNWF_NET_SOCK_SERVICE_t request, void *inpu
         {
             RNWF_NET_SOCKET_t *socket = (RNWF_NET_SOCKET_t*)(input);
             int8_t socket_id[32];
-            if(RNWF_CMD_SEND_OK_WAIT(RNWF_SOCK_OPEN_RESP, socket_id, RNWF_SOCK_OPEN_UDP) == RNWF_PASS)
+            if(RNWF_CMD_SEND_OK_WAIT(RNWF_SOCK_OPEN_RESP, (uint8_t *)socket_id, RNWF_SOCK_OPEN_UDP) == RNWF_PASS)
             {
-                sscanf(socket_id, "%lu", &socket->sock_master);
+                sscanf((char *)socket_id, "%lu", &socket->sock_master);
                 switch(socket->bind_type)
                 {
                     case RNWF_BIND_LOCAL:
@@ -185,12 +185,12 @@ int16_t RNWF_NET_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  
     if(RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SOCK_READ, socket, RNWF_BINARY_MODE, length) == RNWF_RAW)
     {
         result = RNWF_RAW_Read(buffer, length);
-    }
+    }    
     return result;
 }
 
 
-int16_t RNWF_NET_TCP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  {                                   
+int16_t RNWF_NET_TCP_SOCK_Read( uint32_t socket, uint16_t length, uint8_t *buffer)  {       
     return RNWF_NET_SOCK_Read(socket, length, buffer);
 }
 

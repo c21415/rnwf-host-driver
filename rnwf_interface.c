@@ -261,6 +261,7 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
         case 'W':
         case 'D':
         case 'N':
+        case 'T':
         {            
             for(int i = 0; i < RNWF_WIFI_SERVICE_CB_MAX; i++)
             {
@@ -293,7 +294,11 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
                 {                     
                     wifi_cb_func(RNWF_SCAN_DONE, p_arg); 
                     result = RNWF_PASS;
-                }    
+                }
+                if(strstr((char *)p_msg, RNWF_EVENT_TIME))
+                {
+                    wifi_cb_func(RNWF_SNTP_UP, p_arg);   
+                }
             }
         }
         break;
@@ -329,7 +334,7 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
                 {
                     uint16_t rx_len = 0;                       
                     sscanf((char *)p_arg, "%*lu %u", &rx_len);  
-                    p_arg = (uint16_t *)&rx_len;                    
+                    p_arg = (uint8_t *)&rx_len;                    
                     event = RNWF_NET_SOCK_EVENT_READ;
                 }    
                 else if(strstr((char *)p_msg, RNWF_EVENT_SOCK_ERROR))
@@ -346,21 +351,32 @@ RNWF_RESULT_t RNWF_IF_ASYNC_Handler(uint8_t *p_msg)
         case 'M':
         {
             uint32_t status;
-            /**No call back then just return */
-            if(gMqtt_CallBack_Handler == NULL)
-                break;
             
-            sscanf((char *)p_arg, "%lu %*s", &status); 
+            for(uint8_t i = 0; i < RNWF_MQTT_SERVICE_CB_MAX; i++)
+            {
+                RNWF_MQTT_CALLBACK_t mqtt_cb_func = gMqtt_CallBack_Handler[i];
+            /**No call back then just return */
+                if(mqtt_cb_func == NULL)
+                    continue;
+            
             if(strstr((char *)p_msg, RNWF_EVENT_MQTT_CONNECTED))
             {                
+                    sscanf((char *)p_arg, "%lu %*s", &status);
                 if(status)
-                    gMqtt_CallBack_Handler(RNWF_MQTT_CONNECTED, p_arg);
+                        result = mqtt_cb_func(RNWF_MQTT_CONNECTED, p_arg);
                 else
-                    gMqtt_CallBack_Handler(RNWF_MQTT_DISCONNECTED, p_arg);                
+                        result = mqtt_cb_func(RNWF_MQTT_DISCONNECTED, p_arg);                
             }                   
+                if(strstr((char *)p_msg, RNWF_EVENT_MQTT_SUB_RESP))
+                {
+                    result = mqtt_cb_func(RNWF_MQTT_SUBCRIBE_ACK, p_arg);
+                }
             if(strstr((char *)p_msg, RNWF_EVENT_MQTT_SUB_MSG))
             {
-                gMqtt_CallBack_Handler(RNWF_MQTT_SUBCRIBE_MSG, p_arg);
+                    result = mqtt_cb_func(RNWF_MQTT_SUBCRIBE_MSG, p_arg);
+                }
+                if(result == RNWF_COTN)
+                    break;
             }
         }
         break;
@@ -391,16 +407,16 @@ RNWF_RESULT_t RNWF_RESPONSE_Trim(uint8_t *buffer)
 uint16_t RNWF_IF_Read(uint8_t *buffer, uint16_t len)
 {
     uint16_t read_cnt = 0;
+    g_interface_timeout = RNWF_INTERFACE_TIMEOUT;
     while((read_cnt < len) && g_interface_timeout)
     {
-        //later make it timeout
         g_interface_timeout--;
-        if(UART2->IsRxReady())
-        {
-            g_interface_timeout = RNWF_INTERFACE_TIMEOUT;
+        //later make it timeout        
+        if(UART2.IsRxReady())
+        {            
             buffer[read_cnt++] = UART2.Read();
         }
-    }
+    }    
     return read_cnt;
 }
 
@@ -422,7 +438,7 @@ void RNWF_EXIT_RAW_Mode(void)
 int16_t RNWF_RAW_Read(uint8_t *buffer, uint16_t len)
 {
     uint8_t tempBuf[4] = {0, 0, 0, 0};
-    volatile int16_t result = RNWF_TIMEOUT;
+    int16_t result = RNWF_TIMEOUT;
 
     if((result = RNWF_IF_Read(buffer, len)) == len) // Complete response is copied
     {
@@ -431,13 +447,10 @@ int16_t RNWF_RAW_Read(uint8_t *buffer, uint16_t len)
             if(memcmp(tempBuf, "OK\r\n", 4) == 0)
             {
                 return result;
-            }
-            else
-            {
-                RNWF_EXIT_RAW_Mode();
-            }
+            }                       
         }
     }
+    RNWF_EXIT_RAW_Mode();
     return result;
 }
 
@@ -464,7 +477,7 @@ RNWF_RESULT_t RNWF_EVENT_Handler(void)
     uint8_t *ptr_async;            
     while(IF_RX_Q_DEQUEUE(&ptr_async) != false)
     {                   
-        strcpy(async_buf, ptr_async);        
+        strcpy((char *)async_buf, (const char *)ptr_async);        
         IF_BUF_Q_ENQUEUE(ptr_async);        
         
         char *token = strtok((char *)async_buf, "\r+");        
@@ -546,7 +559,7 @@ int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8
             }
             //RAW mode
             if(g_if_buffer[rsp_len-1] == '#')
-            {
+            {                
 #ifdef RNWF_INTERFACE_DEBUG       
                 printf("RAW Mode!\n");
 #endif /* RNWF_INTERFACE_DEBUG */                                     

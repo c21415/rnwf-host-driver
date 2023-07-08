@@ -75,9 +75,9 @@ This page is for advanced users.
 
 /* Time */
 /* Values may need to be adjusted based on host platform. */
-#define TP_DELAY_USEC             500
+#define TP_DELAY_USEC             100
 #define MSEC_TO_SEC               1000
-#define WRITE_DELAY_USEC            40
+#define WRITE_DELAY_USEC          250
 
 
 /* DFU */
@@ -92,7 +92,7 @@ This page is for advanced users.
 #define DFU_PE_WRITE_SIZE   4096
 
 /* Time */
-#define UART_DELAY_MSEC     50
+#define UART_DELAY_MSEC     500
 
 /**
  @defgroup OTA_GRP OTA API
@@ -199,9 +199,18 @@ typedef void (*RNWF_OTA_CALLBACK_t)(RNWF_OTA_EVENT_t, void *);
 
 typedef struct
 {
-    uint16_t chunk_size;
-    uint8_t  *chunk_ptr;
+    uint32_t chunk_addr; 
+    uint32_t chunk_size;    
+    uint8_t  *chunk_ptr;    
 }RNWF_OTA_CHUNK_t;
+
+
+typedef struct
+{
+    uint32_t seq_num;
+    uint32_t fw_ver;
+    uint32_t start_addr;    
+}RNWF_OTA_HDR_t;
 
 /**
  @brief Network and Socket service List
@@ -257,8 +266,8 @@ void     DFU_PE_InjectTestPattern(void);
 uint8_t  DFU_PE_Version(void);
 /* DFU_PE_Chip_ID return device chip ID in successful case, else 0.*/
 uint32_t DFU_PE_Chip_ID(void);
-bool     DFU_PE_Erase(const uint32_t address, const uint32_t length);
-bool     DFU_PE_Write(const uint32_t address, const uint32_t length, uint8_t *PE_writeBuffer);
+bool     DFU_PE_Erase(uint32_t address, const uint32_t length);
+bool     DFU_PE_Write(uint32_t address, const uint32_t length, uint8_t *PE_writeBuffer);
 
 
 #endif	/* XC_HEADER_TEMPLATE_H */

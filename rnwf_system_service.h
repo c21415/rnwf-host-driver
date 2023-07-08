@@ -49,6 +49,11 @@ This page introduces the user to the topic.
 #define RNWF_GET_DEV_INFO       "AT+DI\r\n"
 
 
+#define RNWF_SET_SNTP_ENBL      "AT+SNTPC=1,1\r\n"
+#define RNWF_SET_SNTP_STATIC    "AT+SNTPC=2,1\r\n"
+#define RNWF_SET_SNTP_DHCP      "AT+SNTPC=2,1\r\n"
+#define RNWF_SET_SNTP_URL       "AT+SNTPC=3,\"%s\"\r\n"
+
 #define RNWF_GET_SYS_TIME       "AT+TIME,3\r\n"
 
 #define RNWF_SET_SYS_TIME_UNIX  "AT+TIME=1,%lu\r\n"
@@ -60,6 +65,8 @@ This page introduces the user to the topic.
 #define RNWF_GET_KEY_LIST       "AT+FS=2,2\r\n"
 
 #define RNWF_GET_WIFI_IFNO     "AT+NETIFC=0\r\n"
+
+#define RNWF_GET_MQTT_IFNO     "AT+MQTTC\r\n"
 
 
 /**
@@ -74,10 +81,11 @@ This page introduces the user to the topic.
  */
 typedef enum{
     RNWF_SYSTEM_RESET,             /**<Request/Trigger reset the system */
+    RNWF_SYSTEM_SW_REV,            /**<Request Software Revision */
+    RNWF_SYSTEM_DEV_INFO,            /**<Request Software Revision */            
     RNWF_SYSTEM_ECHO_OFF,          /**<Request/Trigger reset the system */            
     RNWF_SYSTEM_GET_MAN_ID,        /**<Get the manufacturing ID */
-    RNWF_SYSTEM_SW_REV,
-    RNWF_SYSTEM_DEV_INFO,
+    RNWF_SYSTEM_SET_SNTP,          /**<Enable SNTP with given server URL */
     RNWF_SYSTEM_SET_TIME_UNIX,     /**<Set the sytem time in UNIX format */            
     RNWF_SYSTEM_SET_TIME_NTP,      /**<Set the system time in NTP format */            
     RNWF_SYSTEM_SET_TIME_STRING,   /**<Set the system time in string(YYYY-MM-DDTHH:MM:SS.00Z) format */                        
@@ -85,7 +93,7 @@ typedef enum{
     RNWF_SYSTEM_GET_CERT_LIST,     /**<Get the available certificate list */
     RNWF_SYSTEM_GET_KEY_LIST,      /**<Get the available private key list */
     RWWF_SYSTEM_GET_WIFI_INFO,
-            
+    RNWF_SYSTEM_GET_MQTT_INFO,                
 }RNWF_SYSTEM_SERVICE_t;
 
 
@@ -99,7 +107,7 @@ typedef enum{
  * @return ::RNWF_PASS Requested service is handled successfully
  * @return ::RNWF_FAIL Requested service has failed
  */
-RNWF_RESULT_t RNWF_SYSTEM_SrvCtrl(RNWF_SYSTEM_SERVICE_t request, uint8_t *input);
+RNWF_RESULT_t RNWF_SYSTEM_SrvCtrl(RNWF_SYSTEM_SERVICE_t request, void *input);
 
 #endif	/* RNWF_SYSTEM_SERVICE_H */
 

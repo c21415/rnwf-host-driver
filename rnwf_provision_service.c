@@ -103,15 +103,7 @@ RNWF_RESULT_t RNWF_PROV_APP_Parse(uint8_t *wifiCofnig, RNWF_WIFI_PARAM_t *wifi_c
         {
             uint8_t security = (RNWF_WIFI_SECURITY_t)atoi(p);
             
-            #if 0            
-                    switch(security)
-                    {
-                        case 0:
-                        case 1:
-                        case 2:    
-                        case 3:
-                    }
-            #endif 
+            
             
             wifi_config->security = RNWF_PROV_ParseAuth(security);
                     
