@@ -491,7 +491,8 @@ RNWF_RESULT_t RNWF_EVENT_Handler(void)
             token = strtok(NULL, "\r+");            
         }
     }
-    RNWF_CMD_RSP_Send(NULL, NULL, NULL, NULL);
+    if(UART2.IsRxReady())
+        RNWF_CMD_RSP_Send(NULL, NULL, NULL, NULL);
     return RNWF_PASS;
 }
 /** 
@@ -674,7 +675,7 @@ RNWF_RESULT_t RNWF_IF_Init(void)
         IF_BUF_Q_ENQUEUE(pMem_addr);
     }
 
-    RNWF_IF_SW_Reset();
+    RNWF_IF_SW_Reset();    
     RNWF_SYSTEM_SrvCtrl(RNWF_SYSTEM_ECHO_OFF, NULL);
     
     return RNWF_PASS;

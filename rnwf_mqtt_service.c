@@ -20,12 +20,8 @@
 
 
 #define MQTT_DPS_TOP_SET_REG        "$dps/registrations/PUT/iotdps-register/?$rid=1"
-#define MQTT_DPS_MSG_SET_REQ        "{\\\"payload\\\": {\\\"modelId\\\": \\\"dtmi:com:Microchip:WFI32_IoT_WM;2\\\"}}"
+#define MQTT_DPS_MSG_SET_REQ        "{\\\"payload\\\": {\\\"modelId\\\": \\\"dtmi:com:Microchip:AVR128DB48_CNANO;1\\\"}}"
 
-
-//4.36e237c8db462f45.512feddb-21d7-4aa2-a698-8e7348a740f5
-
-//4.220aa81bdd91e530.e53e8552-06fd-4e10-b9a1-83834a25a663
 
 #define MQTT_DPS_TOP_DPS_GET_STAT   "$dps/registrations/GET/iotdps-get-operationstatus/?$rid=2&operationId=%s"
 #define MQTT_DPS_MSG_DPS_GET_STAT   ""
@@ -39,8 +35,7 @@
 #define MQTT_DPS_END_ID_STR         "\\\" \\\""
 
 
-#define MQTT_IOT_HUB_USERNAME       "%s/%s"
-//#define MQTT_IOT_HUB_USERNAME       "%s/%s/api-version=2021-04-12"
+#define MQTT_IOT_HUB_USERNAME       "%s/%s/?api-version=2021-04-12"
 
 /* ************************************************************************** */
 /* ************************************************************************** */
@@ -62,6 +57,8 @@ RNWF_RESULT_t RNWF_MQTT_SRVC_Callback(RNWF_MQTT_EVENT_t event, uint8_t *p_str)
         case RNWF_MQTT_CONNECTED:
         {
             const char sub_topic[] = MQTT_DPS_SUBSCRIBE_TOPIC;
+            DBG_MSG_MQTT("Azure Central Connection Successful!\r\n");
+            DBG_MSG_MQTT("Performing Device Provisioning Service(DPS)...\r\n");
             RNWF_MQTT_SrvCtrl(RNWF_MQTT_SUBSCRIBE_QOS0, (void *)sub_topic);             
         }
         break;
@@ -108,7 +105,7 @@ RNWF_RESULT_t RNWF_MQTT_SRVC_Callback(RNWF_MQTT_EVENT_t event, uint8_t *p_str)
                     *pTmp = '\0';
                     sprintf(tmpBuf, MQTT_DPS_TOP_DPS_GET_STAT, pOpId+strlen(MQTT_DPS_OP_ID_STR)+1);
                     DELAY_milliseconds(1500);
-                    DBG_MSG_MQTT("Register Topic = %s\r\n", tmpBuf);
+//                    DBG_MSG_MQTT("Register Topic = %s\r\n", tmpBuf);
                     mqtt_pub.isNew = NEW_MSG;
                     mqtt_pub.qos = MQTT_QOS0;
                     mqtt_pub.isRetain = NO_RETAIN;
@@ -172,6 +169,7 @@ RNWF_RESULT_t result = RNWF_FAIL;
         }           
         case RNWF_MQTT_CONNECT:
         {
+            result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_MQTT_CMD_DISCONNECT);
             result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_MQTT_CMD_CONNECT);     
         }
             break;
