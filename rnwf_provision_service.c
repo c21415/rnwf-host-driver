@@ -241,33 +241,35 @@ void HTTP_RESPONSE_Error(uint32_t socket, uint8_t *input)
 
 void RNWF_WEB_PROV_Process(uint32_t socket, uint16_t rx_len) {
 
-    volatile uint8_t *request = NULL, *end_str, *content = NULL, *tmpPtr;
+    uint8_t *request = NULL, *end_str, *content = NULL, *tmpPtr;
     uint8_t page_idx = 0;
     volatile int result;
     uint16_t read_len = 0;
-    volatile static uint16_t offset = 0, content_len = 0;
+    static uint16_t offset = 0, content_len = 0, hdr_len;
 
     while(rx_len)
     {
         read_len = ((rx_len + offset) > HTTP_BUFFER_LEN)?(HTTP_BUFFER_LEN - offset):(rx_len-offset);
         if((result = RNWF_NET_TCP_SOCK_Read(socket, read_len, (uint8_t *)http_buffer+offset)) > 0)
-        {
+        {            
             rx_len -= result;
-            http_buffer[result+offset] = '\0';
+            http_buffer[result+offset] = '\0';                                    
+            //Calculate the Header Length
+            hdr_len = ((uint32_t)(strstr(http_buffer, "\r\n\r\n") - ((uint32_t)http_buffer + offset)) + 4);
             if(!offset && (tmpPtr = (uint8_t *)strstr(http_buffer, HTTP_CONTENT_LEN)) != NULL)
-            {
-                volatile char *token = strtok(tmpPtr, "\r\n");
+            {                
+                volatile char *token = strtok(tmpPtr, "\r\n");                                                
                 content_len = strtol((token+sizeof(HTTP_CONTENT_LEN)), NULL, 10);
-                offset = result;
-                return;
+                offset = result;                
             }
-            if(content_len && (content_len >= result))
+            if(content_len && (content_len == result-hdr_len))
             {
-                content = (uint8_t *)&http_buffer[offset];
+                content = (uint8_t *)&http_buffer[hdr_len];
+                hdr_len = 0;
                 break;
             }
         }
-    }
+    }    
     content_len = 0;
     offset = 0;
     request = (uint8_t *)strchr((char *)http_buffer, ' ') + 1;
@@ -275,21 +277,21 @@ void RNWF_WEB_PROV_Process(uint32_t socket, uint16_t rx_len) {
 
     if(request != NULL && (end_str != NULL))
     {
-        http_buffer[end_str - http_buffer] = '\0';
+        http_buffer[end_str - http_buffer] = '\0';        
         while(g_web_pages[page_idx].url != NULL)
-        {
+        {            
             if(strlen((char *)request) == strlen(g_web_pages[page_idx].url))
-            {
+            {                
                 for(int idx = 0; idx < strlen((char *)request); idx++)
                 {
                     if(request[idx] != g_web_pages[page_idx].url[idx])
-                    {
+                    {                        
                         page_idx++;
                         continue;
                     }
                 }
                 if(g_web_pages[page_idx].handler != NULL)
-                {
+                {                    
                     g_web_pages[page_idx].handler(socket, content);
                     return;
                 }
