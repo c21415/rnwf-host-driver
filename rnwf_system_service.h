@@ -68,6 +68,9 @@ This page introduces the user to the topic.
 
 #define RNWF_GET_MQTT_IFNO     "AT+MQTTC\r\n"
 
+#ifdef RNWF11_SERVICE
+#define RNWF_TRIGGER_BOOTLOADER "AT+TBL\r\n"
+#endif
 
 /**
  @defgroup SERVICE_GRP System Service API
@@ -81,6 +84,9 @@ This page introduces the user to the topic.
  */
 typedef enum{
     RNWF_SYSTEM_RESET,             /**<Request/Trigger reset the system */
+#ifdef RNWF11_SERVICE    
+    RNWF_SYSTEM_TBL,               /**<Request/Trigger reset the system to bootloader mode */
+#endif
     RNWF_SYSTEM_SW_REV,            /**<Request Software Revision */
     RNWF_SYSTEM_DEV_INFO,            /**<Request Software Revision */            
     RNWF_SYSTEM_ECHO_OFF,          /**<Request/Trigger reset the system */            

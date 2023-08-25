@@ -59,6 +59,7 @@ This page is for advanced users.
 
 #define OTA_IMAGE_MAX               2
 
+#ifndef RNWF11_SERVICE      /* RNWF02 */
 /* Maximum supported write size by DFU PE (Programming Executive). */
 #define MAX_PE_WRITE_SIZE           4096U
 
@@ -73,13 +74,15 @@ This page is for advanced users.
 #define PE_ERASE_PAGE_SIZE        4096
 #define PE_MAX_RESPONSE_SIZE         8
 
+#endif
+
 /* Time */
 /* Values may need to be adjusted based on host platform. */
 #define TP_DELAY_USEC             100
 #define MSEC_TO_SEC               1000
 #define WRITE_DELAY_USEC          250
 
-
+#ifndef RNWF11_SERVICE      /* RNWF02 */
 /* DFU */
 #define RIO0_PE_VERSION 1
 //#define RIO0_CHIP_ID    0x29c71053
@@ -90,6 +93,36 @@ This page is for advanced users.
  * Must not exceed MAX_PE_WRITE_SIZE (4096) or DFU_PE_Write() will fail.
  */
 #define DFU_PE_WRITE_SIZE   4096
+
+#else    /* RNWF02 */
+
+#define BL_CMD_UNLOCK       0xa0
+#define BL_CMD_DATA         0xa1
+#define BL_CMD_VERIFY       0xa2
+#define BL_CMD_RESET        0xa3
+#define BL_CMD_BKSWAP_RESET 0xa4
+#define BL_CMD_DEVCFG_DATA  0xa5
+#define BL_CMD_READ_VERSION 0xa6
+#define BL_CMD_ENTER_BTL    0xa7
+#define BL_CMD_ERASE_APP    0xa8
+
+#define BL_RESP_OK          0x50
+#define BL_RESP_ERROR       0x51
+#define BL_RESP_INVALID     0x52
+#define BL_RESP_CRC_OK      0x53
+#define BL_RESP_CRC_FAIL    0x54
+#define BL_RESP_NONE        0xFF
+
+#define BL_GUARD            0x5048434D
+
+#define CMD_SIZE                1
+#define GUARD_SIZE              4
+#define SIZE_SIZE               4
+#define ADDR_SIZE               4
+#define CMD_ONLY_EXTRA_SIZE     4
+#define HEADER_SIZE             (GUARD_SIZE + SIZE_SIZE + CMD_SIZE)
+
+#endif
 
 /* Time */
 #define UART_DELAY_MSEC     500
@@ -149,6 +182,9 @@ typedef enum
     RNWF_OTA_DFU_INIT,           /**<OTA Trigger, Actual programming start*/
     RNWF_OTA_DFU_WRITE,             /**<OTA Write, Writes the FW max 4096 bytes*/
     RNWF_OTA_DFU_ERASE,             /**<OTA Erase, Erases the given size*/
+#ifdef RNWF11_SERVICE            
+    RNWF_OTA_DFU_RESET,             /**<OTA Reset, Erases the given size*/
+#endif
 }RNWF_OTA_SERVICE_t;
 
 /**
@@ -261,6 +297,8 @@ extern "C" {
 
 RNWF_RESULT_t DFU_PROGRAM_Task(uint32_t otaBinSize);
 void     DFU_Reset(void);
+#ifndef RNWF11_SERVICE      /* RNWF02 */
+
 void     DFU_PE_InjectTestPattern(void);
 /* DFU_PE_Version returns PE version in succesful case, else 0. */
 uint8_t  DFU_PE_Version(void);
@@ -269,6 +307,15 @@ uint32_t DFU_PE_Chip_ID(void);
 bool     DFU_PE_Erase(uint32_t address, const uint32_t length);
 bool     DFU_PE_Write(uint32_t address, const uint32_t length, uint8_t *PE_writeBuffer);
 
+#else   /* RNWF11_SERVUCE */
+
+uint16_t DFU_UART_Read_Bootloader_Version(void);
+bool DFU_UART_Write(uint32_t address, const uint32_t length, uint8_t *writeBuffer);
+bool DFU_UART_Unlock(uint32_t address, uint32_t size);
+bool DFU_UART_Verify(uint32_t crc);
+bool DFU_UART_Reset(void);
+bool DFU_UART_ERASE_APP(void);
+#endif
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 
