@@ -39,6 +39,12 @@ RNWF_RESULT_t RNWF_SYSTEM_SrvCtrl(RNWF_SYSTEM_SERVICE_t request, void *input) {
             result = RNWF_CMD_SEND_OK_WAIT(NULL, init_msg, RNWF_RESET_TARGET);
         }
         break;
+#ifdef RNWF11_SERVICE
+        case RNWF_SYSTEM_TBL:
+        {
+            result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_TRIGGER_BOOTLOADER);
+        }
+#endif        
         case RNWF_SYSTEM_ECHO_OFF:
         {
             result = RNWF_CMD_SEND_OK_WAIT(NULL, NULL, RNWF_SET_ECHO_OFF);

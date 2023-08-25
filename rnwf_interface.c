@@ -658,6 +658,9 @@ int16_t RNWF_CMD_RSP_Send(const char *cmd_complete, const char *delimeter, uint8
         }
     }
 
+    if (g_interface_timeout == -1)
+        result = RNWF_TIMEOUT;
+
     RNWF_SET_INTERFACE_FREE();
     return result;
 }
@@ -675,7 +678,7 @@ RNWF_RESULT_t RNWF_IF_Init(void)
         IF_BUF_Q_ENQUEUE(pMem_addr);
     }
 
-    RNWF_IF_SW_Reset();    
+    RNWF_IF_SW_Reset();
     RNWF_SYSTEM_SrvCtrl(RNWF_SYSTEM_ECHO_OFF, NULL);
     
     return RNWF_PASS;
