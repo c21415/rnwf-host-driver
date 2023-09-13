@@ -19,7 +19,7 @@
 
 
 
-
+#define HTTP_CONTENT_OK    "200 OK"
 #define HTTP_CONTENT_LEN    "Content-Length:"
 /* ************************************************************************** */
 /* ************************************************************************** */
@@ -140,17 +140,27 @@ RNWF_RESULT_t RNWF_OTA_DWNLD_Process(uint32_t socket, uint16_t rx_len)
 
     while(rx_len > 0)
     {
-        volatile uint16_t readCnt = ((rx_len + result) > OTA_BUF_LEN_MAX)?(OTA_BUF_LEN_MAX-result):rx_len;        
+        uint16_t readCnt = ((rx_len + result) > OTA_BUF_LEN_MAX)?(OTA_BUF_LEN_MAX-result):rx_len;
         if((read_size = RNWF_NET_TCP_SOCK_Read(socket, readCnt, (uint8_t *)&g_ota_buf[result])) > 0 )
         {
             if(!otaFileSize)
             {
-                DBG_MSG_OTA("%s\r\n", g_ota_buf);
-                if((tmpPtr = (char *)strstr((const char *)g_ota_buf, (const char *)HTTP_CONTENT_LEN)) != NULL)
+                tmpPtr = (char *)strstr((const char *)g_ota_buf, (const char *)HTTP_CONTENT_OK);
+                if(tmpPtr)
                 {
+                    DBG_MSG_OTA("%s\r\n", g_ota_buf);
+                    tmpPtr = (char *)strstr((const char *)g_ota_buf, (const char *)HTTP_CONTENT_LEN);
+                    if(tmpPtr == NULL)
+                        break;
                     char *token = strtok(tmpPtr, "\r\n");
                     otaFileSize = strtol((token+sizeof(HTTP_CONTENT_LEN)), NULL, 10);
                     gOta_CallBack_Handler(RNWF_EVENT_DWLD_START, (uint8_t *)&otaFileSize);
+                }
+                else
+                {
+                    DBG_MSG_OTA("File Not Found!\r\n");
+                    RNWF_NET_SOCK_SrvCtrl(RNWF_NET_SOCK_CLOSE, &socket);
+                    gOta_CallBack_Handler(RNWF_EVENT_DWLD_FAIL, (uint8_t *)NULL);
                 }
                 break;
             }            
@@ -174,7 +184,9 @@ RNWF_RESULT_t RNWF_OTA_DWNLD_Process(uint32_t socket, uint16_t rx_len)
         }
         else
         {
-            break;
+            RNWF_NET_SOCK_SrvCtrl(RNWF_NET_SOCK_CLOSE, &socket);
+            gOta_CallBack_Handler(RNWF_EVENT_DWLD_FAIL, (uint8_t *)NULL);
+            return RNWF_FAIL;
         }
     }
     return RNWF_PASS;
@@ -293,9 +305,9 @@ RNWF_RESULT_t RNWF_OTA_SrvCtrl( RNWF_OTA_SERVICE_t request, void *input)
             /* Verify chip ID */
             chipID = DFU_PE_Chip_ID();
 
-            if (chipID != RIO0_CHIP_ID)
+            if ((chipID & 0xFFFF00FF) != RIO0_CHIP_ID)
             {
-                DBG_MSG_OTA("Chip ID didn't match");
+                DBG_MSG_OTA("Chip ID didn't match\r\n");
                 result = RNWF_FAIL;
             }   
 #else   /* RNWF11_SERVUCE */
@@ -508,7 +520,7 @@ uint32_t DFU_PE_Chip_ID(void)
     /* Response */
     RNWF_IF_Read((uint8_t *)byteResp, 8);
 
-    DBG_MSG_OTA("Chip ID: %lu\r\n", (uint32_t)byteResp[1]);
+    DBG_MSG_OTA("Chip ID: %lX\r\n", (uint32_t)byteResp[1]);
     return byteResp[1];
 }
 
@@ -522,6 +534,7 @@ bool DFU_PE_Erase(const uint32_t address, const uint32_t length)
     {
         pages += (uint32_t)1;
     }
+    DBG_MSG_OTA("PE erase pages = %d\r\n", pages);
 
     data = PE_CMD_PAGE_ERASE;
     data = data << 16;
@@ -649,7 +662,7 @@ bool DFU_PE_Write(uint32_t address, const uint32_t length, uint8_t *PE_writeBuff
     return true;
 }
 
-#else   /* RNWF11_SERVUCE */
+#else   /* RNWF11_SERVICE */
 
 uint8_t send_request_cmd_data(uint8_t cmd, uint8_t *data, uint32_t dataLen, uint32_t dataAddr) {
     uint8_t req[HEADER_SIZE];
@@ -889,7 +902,7 @@ void DFU_Reset(void)
 {
     const char *MCLR_RESET = "101";
 
-    DBG_MSG_OTA("* Resetting NC * \r\n");
+    DBG_MSG_OTA("Resetting RNWF Module\r\n");
 
     MCLR_SetDigitalOutput();
     for (uint8_t i=0; i<(uint8_t)strlen(MCLR_RESET); i++)

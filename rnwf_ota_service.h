@@ -198,6 +198,7 @@ typedef enum
     RNWF_EVENT_FILE_CHUNK,      /**<FW Downloaded file chunk */
     RNWF_EVENT_DWLD_START,      /**<FW Download complete */
     RNWF_EVENT_DWLD_DONE,       /**<FW Download complete */
+    RNWF_EVENT_DWLD_FAIL,       /**<FW Download failed */
     RNWF_EVENT_CONFIG_INFO,
      
 }RNWF_OTA_EVENT_t;
